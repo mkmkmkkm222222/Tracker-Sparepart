@@ -1,0 +1,9 @@
+{
+  "name": "SparePart Tracker Pro Fix",
+  "description": "Sistem tracking keluar masuk sparepart modern dengan role Direktur, Admin Gudang, dan Teknisi. Terintegrasi dengan Google Sheets.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ],
+  "majorCapabilities": []
+}

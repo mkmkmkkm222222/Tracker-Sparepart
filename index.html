@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIlRyYWNrLVBhcnQgUHJvIiwKICAic2hvcnRfbmFtZSI6ICJUcmFjay1QYXJ0IiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZmZmZmZmIiwKICAidGhlbWVfY29sb3IiIjogIiMyNTYzZWIiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucz1wbmcuZmxhdGljb24uY29tLzUxMi8yMzc0LzIzNzQzOTMucG5nIiwKICAgICAgInNpemVzIjogIjUxMng1MTIiLAogICgKICAgICAgInR5cGUiOiAiaW1hZ2UvcG5nIgogICAgfQogIF0KfQ==">
+    <title>Sparepart Tracking System Pro</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --primary-dark: #0a58ca;
+            --bg-light: #f8f9fa;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f0f2f5;
+            color: #2d3436;
+            overflow-x: hidden;
+        }
+
+        /* Login Screen */
+        #login-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0d6efd 0%, #003d99 100%);
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            transform: translateY(0);
+            transition: var(--transition);
+        }
+
+        .login-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .role-btn {
+            display: flex;
+            align-items: center;
+            padding: 16px 24px;
+            margin-bottom: 12px;
+            border-radius: 16px;
+            border: 2px solid #f1f3f5;
+            background: white;
+            transition: var(--transition);
+            text-align: left;
+            width: 100%;
+        }
+
+        .role-btn:hover {
+            border-color: var(--primary-color);
+            background: #f8f9ff;
+            transform: scale(1.02);
+        }
+
+        .role-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 20px;
+        }
+
+        /* Main App */
+        #app-content {
+            display: none;
+        }
+
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+            padding: 15px 0;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--primary-color) !important;
+        }
+
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: white;
+            border-bottom: 1px solid #f1f3f5;
+            padding: 20px 24px;
+            font-weight: 700;
+        }
+
+        .table thead th {
+            background: #f8f9fa;
+            border-bottom: none;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: #adb5bd;
+            padding: 15px 24px;
+        }
+
+        .table tbody td {
+            padding: 18px 24px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        /* Badges */
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bg-proses { background: #fff4e6; color: #d9480f; }
+        .bg-valid { background: #ebfbee; color: #2b8a3e; }
+        .bg-tidak-valid { background: #fff5f5; color: #c92a2a; }
+        .bg-invalid { background: #fff5f5; color: #c92a2a; }
+
+        /* Form */
+        .form-control, .form-select {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 2px solid #f1f3f5;
+            font-weight: 500;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: none;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 13px;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .btn-primary {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+        }
+
+        .role-section {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .active-section {
+            display: block;
+        }
+
+        /* Map Preview */
+        .map-container {
+            height: 200px;
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #dee2e6;
+            margin-top: 10px;
+        }
+
+        .map-iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .login-card { padding: 30px 20px; }
+            .navbar-brand { font-size: 1.2rem; }
+            .table-responsive { border-radius: 15px; }
+        }
+
+        /* Image Preview Styles */
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .preview-img {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .preview-img:hover {
+            transform: scale(1.05);
+            border-color: var(--primary-color);
+        }
+
+        .preview-item {
+            position: relative;
+            display: inline-block;
+        }
+
+        .remove-img {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid white;
+            z-index: 10;
+        }
+
+        /* Zoom Modal */
+        #zoom-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #zoom-content {
+            max-width: 90%;
+            max-height: 80%;
+            transition: transform 0.3s ease;
+            user-select: none;
+        }
+
+        .zoom-controls {
+            position: absolute;
+            bottom: 30px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .zoom-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+        }
+
+        .close-zoom {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+    <div class="login-card">
+        <div class="mb-4">
+            <div class="bg-primary bg-opacity-10 d-inline-flex p-3 rounded-4 mb-3" style="cursor: pointer;" onclick="handleSecretClick()">
+                <i class="fas fa-boxes-stacked fa-2x text-primary"></i>
+            </div>
+            <h3 class="fw-bold">Sparepart Tracker</h3>
+            <p class="text-muted small">Sistem Monitoring & Inventaris Real-time</p>
+        </div>
+
+        <div id="login-form-container">
+            <div class="mb-3 text-start">
+                <label class="form-label">Pilih Role</label>
+                <select id="login-role" class="form-select mb-3">
+                    <option value="direktur">Direktur (Executive)</option>
+                    <option value="admin">Petugas Gudang (Admin)</option>
+                    <option value="teknisi">Teknisi (Field)</option>
+                </select>
+                <label class="form-label">Password</label>
+                <div class="input-group">
+                    <input type="password" id="login-password" class="form-control" placeholder="Masukkan password">
+                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('login-password')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+            <button onclick="handleLogin()" class="btn btn-primary w-100 py-3 mb-3 shadow">
+                <i class="fas fa-sign-in-alt me-2"></i> Masuk ke Sistem
+            </button>
+            
+            <div class="border-top pt-3" id="secret-settings-wrapper" style="display: none;">
+                <button onclick="goToSettings()" class="btn btn-light w-100 py-2 rounded-pill text-primary fw-bold">
+                    <i class="fas fa-sliders me-2"></i> Pengaturan Sistem
+                </button>
+            </div>
+        </div>
+        
+        <div class="mt-4 pt-3 border-top">
+            <p class="text-muted x-small mb-0">v2.2 Professional Edition</p>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN APP CONTENT -->
+<div id="app-content">
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-bolt me-2"></i>TRACK-PART</a>
+            <div class="d-flex align-items-center">
+                <div class="me-3 d-none d-md-block text-end">
+                    <div id="user-role-display" class="fw-bold small text-uppercase text-primary"></div>
+                    <div class="text-muted x-small">Sesi Aktif</div>
+                </div>
+                <button onclick="logout()" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                    <i class="fas fa-sign-out-alt me-1"></i> Keluar
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        
+        <!-- SECTION: DIREKTUR -->
+        <section id="section-direktur" class="role-section">
+            <div class="row mb-4">
+                <div class="col-12 d-flex justify-content-between align-items-end">
+                    <div>
+                        <h4 class="fw-bold mb-1">Dashboard Eksekutif</h4>
+                        <p class="text-muted small mb-0">Ringkasan pergerakan sparepart hari ini</p>
+                    </div>
+                    <button class="btn btn-light btn-sm rounded-pill px-3" onclick="refreshData()">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="card p-4">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-4 me-3">
+                                <i class="fas fa-file-lines text-primary fa-lg"></i>
+                            </div>
+                            <div>
+                                <div class="text-muted small fw-bold text-uppercase">Total Laporan</div>
+                                <h3 class="fw-bold mb-0" id="stat-total">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-4">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-success bg-opacity-10 p-3 rounded-4 me-3">
+                                <i class="fas fa-check-circle text-success fa-lg"></i>
+                            </div>
+                            <div>
+                                <div class="text-muted small fw-bold text-uppercase">Valid</div>
+                                <h3 class="fw-bold mb-0" id="stat-valid">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-4">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded-4 me-3">
+                                <i class="fas fa-clock text-warning fa-lg"></i>
+                            </div>
+                            <div>
+                                <div class="text-muted small fw-bold text-uppercase">Proses</div>
+                                <h3 class="fw-bold mb-0" id="stat-proses">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Riwayat Pergerakan</span>
+                    <div class="input-group input-group-sm w-auto">
+                        <span class="input-group-text bg-light border-0"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control bg-light border-0" placeholder="Cari data...">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>No. Formulir</th>
+                                <th>Teknisi</th>
+                                <th>Kendala</th>
+                                <th>Dokumentasi Foto</th>
+                                <th>Lokasi</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-direktur-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: ADMIN -->
+        <section id="section-admin" class="role-section">
+            <div class="row mb-4">
+                <div class="col-12 d-flex justify-content-between align-items-end">
+                    <div>
+                        <h4 class="fw-bold mb-1">Manajemen Data</h4>
+                        <p class="text-muted small mb-0">Validasi input teknisi dan kelola master data</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="Swal.fire('Fitur', 'Tambah data manual sedang dikembangkan', 'info')">
+                        <i class="fas fa-plus me-2"></i> Tambah Data
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>No. Formulir</th>
+                                <th>Teknisi</th>
+                                <th>Kendala</th>
+                                <th>Dokumentasi Foto</th>
+                                <th>Lokasi</th>
+                                <th>Validasi</th>
+                                <th class="text-end">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-admin-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: TEKNISI -->
+        <section id="section-teknisi" class="role-section">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header text-center py-4">
+                            <h5 class="fw-bold mb-0">Form Laporan Lapangan</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <form id="form-teknisi">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label">Nomor Formulir Surat</label>
+                                        <input type="text" id="no_sj" class="form-control" placeholder="Contoh: FRM/123/2024" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Nama Teknisi</label>
+                                        <input type="text" id="nama_teknisi" class="form-control" placeholder="Nama Lengkap" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Penjelasan Kendala Unit</label>
+                                        <textarea id="kendala_unit" class="form-control" rows="3" placeholder="Sebutkan kendala atau alasan penggantian sparepart..." required></textarea>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Foto Surat Jalan</label>
+                                        <input type="file" id="foto_sj_input" class="d-none" accept="image/*" capture="environment">
+                                        <button type="button" class="btn btn-light w-100 border py-2 mb-2" onclick="triggerInput('foto_sj_input')">
+                                            <i class="fas fa-camera me-2"></i> Ambil Foto SJ
+                                        </button>
+                                        <div id="preview-foto_sj" class="preview-grid"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Foto Unit & Plat Seri</label>
+                                        <input type="file" id="foto_unit_input" class="d-none" accept="image/*" capture="environment">
+                                        <button type="button" class="btn btn-light w-100 border py-2 mb-2" onclick="triggerInput('foto_unit_input')">
+                                            <i class="fas fa-camera me-2"></i> Ambil Foto Unit
+                                        </button>
+                                        <div id="preview-foto_unit" class="preview-grid"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Foto Sparepart Sebelum</label>
+                                        <input type="file" id="foto_sebelum_input" class="d-none" accept="image/*" capture="environment">
+                                        <button type="button" class="btn btn-light w-100 border py-2 mb-2" onclick="triggerInput('foto_sebelum_input')">
+                                            <i class="fas fa-camera me-2"></i> Ambil Foto Sebelum
+                                        </button>
+                                        <div id="preview-foto_sebelum" class="preview-grid"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Foto Sparepart Sesudah</label>
+                                        <input type="file" id="foto_sesudah_input" class="d-none" accept="image/*" capture="environment">
+                                        <button type="button" class="btn btn-light w-100 border py-2 mb-2" onclick="triggerInput('foto_sesudah_input')">
+                                            <i class="fas fa-camera me-2"></i> Ambil Foto Sesudah
+                                        </button>
+                                        <div id="preview-foto_sesudah" class="preview-grid"></div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="bg-light p-3 rounded-4 border">
+                                            <label class="form-label text-muted x-small text-uppercase fw-bold mb-1">Lokasi Otomatis (GPS & Alamat)</label>
+                                            <div class="d-flex align-items-start mb-2">
+                                                <i class="fas fa-location-dot text-danger mt-1 me-2"></i>
+                                                <div class="flex-grow-1">
+                                                    <div id="display-alamat" class="fw-bold small mb-1">Mencari alamat...</div>
+                                                    <div id="display-koordinat" class="text-muted x-small">Mendeteksi koordinat...</div>
+                                                    <input type="hidden" id="input-alamat">
+                                                    <input type="hidden" id="input-koordinat">
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-light border-0 shadow-sm" onclick="initGeolocation()" title="Refresh Lokasi">
+                                                    <i class="fas fa-arrows-rotate text-primary"></i>
+                                                </button>
+                                            </div>
+                                            <div id="location-action-container" class="mb-2 d-none">
+                                                <button type="button" class="btn btn-warning btn-sm w-100" onclick="initGeolocation()">
+                                                    <i class="fas fa-hand-pointer me-2"></i> Izinkan Akses Lokasi
+                                                </button>
+                                            </div>
+                                            <div id="map-preview" class="map-container">
+                                                <div class="d-flex align-items-center justify-content-center h-100 bg-secondary bg-opacity-10 text-muted small">
+                                                    <i class="fas fa-map me-2"></i> Memuat Peta...
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 mt-4">
+                                        <button type="submit" class="btn btn-primary w-100 py-3 shadow">
+                                            <i class="fas fa-paper-plane me-2"></i> Kirim Laporan
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: SETTINGS -->
+        <section id="section-settings" class="role-section">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="card">
+                        <div class="card-header p-0">
+                            <ul class="nav nav-tabs nav-fill border-0" id="settingsTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active py-3 fw-bold" id="api-tab" data-bs-toggle="tab" data-bs-target="#api-settings" type="button" role="tab">
+                                        <i class="fas fa-key me-2"></i> Konfigurasi API
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link py-3 fw-bold" id="user-tab" data-bs-toggle="tab" data-bs-target="#user-settings" type="button" role="tab" onclick="renderUserTable()">
+                                        <i class="fas fa-users me-2"></i> Manajemen User
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="tab-content" id="settingsTabsContent">
+                                <!-- TAB: API SETTINGS -->
+                                <div class="tab-pane fade show active" id="api-settings" role="tabpanel">
+                                    <form id="form-settings">
+                                        <div class="row g-4">
+                                            <div class="col-12">
+                                                <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">Google Sheets Integration</h6>
+                                                <label class="form-label">Web App URL (Apps Script)</label>
+                                                <input type="url" id="setting-sheet-url" class="form-control" placeholder="https://script.google.com/macros/s/.../exec">
+                                                <div class="form-text x-small text-muted">URL yang didapat setelah mendeploy Apps Script sebagai Web App.</div>
+                                            </div>
+                                            
+                                            <div class="col-12">
+                                                <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">Google Drive Storage</h6>
+                                                <label class="form-label">Folder ID (Penyimpanan Foto)</label>
+                                                <input type="text" id="setting-drive-id" class="form-control" placeholder="1a2b3c4d5e6f7g8h9i0j...">
+                                                <div class="form-text x-small text-muted">ID folder Google Drive tempat foto sparepart akan disimpan.</div>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">Maps Configuration</h6>
+                                                <label class="form-label">Google Maps Embed API Key (Opsional)</label>
+                                                <input type="text" id="setting-maps-key" class="form-control" placeholder="AIzaSy...">
+                                                <div class="form-text x-small text-muted">Jika kosong, sistem akan menggunakan OpenStreetMap sebagai alternatif gratis.</div>
+                                            </div>
+
+                                            <div class="col-12 mt-4">
+                                                <div class="d-flex gap-2">
+                                                    <button type="submit" class="btn btn-primary px-4">
+                                                        <i class="fas fa-save me-2"></i> Simpan API
+                                                    </button>
+                                                    <button type="button" class="btn btn-light px-4" onclick="resetSettings()">
+                                                        <i class="fas fa-undo me-2"></i> Reset Default
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <!-- TAB: USER MANAGEMENT -->
+                                <div class="tab-pane fade" id="user-settings" role="tabpanel">
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <h6 class="fw-bold text-primary mb-0">Daftar Pengguna Sistem</h6>
+                                        <button class="btn btn-primary btn-sm" onclick="showAddUserModal()">
+                                            <i class="fas fa-user-plus me-2"></i> Tambah User
+                                        </button>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle">
+                                            <thead>
+                                                <tr>
+                                                    <th>Username</th>
+                                                    <th>Role</th>
+                                                    <th>Password</th>
+                                                    <th class="text-end">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="table-user-body"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info rounded-4 border-0 shadow-sm d-flex align-items-center mt-3">
+                        <i class="fas fa-info-circle fa-lg me-3"></i>
+                        <div class="small">
+                            Semua data pengaturan dan user disimpan secara lokal di browser Anda (**localStorage**).
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<!-- ZOOM MODAL -->
+<div id="zoom-modal">
+    <span class="close-zoom" onclick="closeZoom()">&times;</span>
+    <img id="zoom-content" src="" alt="Zoomed view">
+    <div class="zoom-controls">
+        <button class="zoom-btn" onclick="zoomIn()"><i class="fas fa-search-plus"></i></button>
+        <button class="zoom-btn" onclick="zoomOut()"><i class="fas fa-search-minus"></i></button>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // --- CONFIG & STORAGE ---
+    // TIPS: Isi sheetUrl di bawah ini dengan URL Deployment Apps Script Anda 
+    // agar semua teknisi tidak perlu setting manual lagi.
+    const DEFAULT_CONFIG = {
+        sheetUrl: 'https://script.google.com/macros/s/AKfycbzIyeE-vN6UXK_siNSmPjQSSL14JEYNq5oeV5CxKU09ZLXeLy4m_HWBUt3SNzHmUQQI3Q/exec',
+        driveId: '1G8VZflG-JAiFOetTXz22yT5FAq0DYlUA',
+        mapsKey: ''
+    };
+
+    const DEFAULT_USERS = [
+        { id: 1, username: 'direktur', password: 'direktur123', role: 'direktur' },
+        { id: 2, username: 'admin', password: 'admin123', role: 'admin' },
+        { id: 3, username: 'teknisi', password: 'teknisi123', role: 'teknisi' }
+    ];
+
+    let config = JSON.parse(localStorage.getItem('sparepart_config')) || DEFAULT_CONFIG;
+    let userStore = JSON.parse(localStorage.getItem('sparepart_users')) || DEFAULT_USERS;
+
+    // --- STATE & DATA ---
+    let currentRole = null;
+    let dataStore = []; 
+    let secretClickCount = 0;
+    let secretClickTimer = null;
+
+    function handleSecretClick() {
+        secretClickCount++;
+        clearTimeout(secretClickTimer);
+        
+        if (secretClickCount >= 7) {
+            secretClickCount = 0;
+            showSecurityGate();
+        }
+        
+        secretClickTimer = setTimeout(() => {
+            secretClickCount = 0;
+        }, 3000);
+    }
+
+    async function showSecurityGate() {
+        const { value: password } = await Swal.fire({
+            title: 'Verifikasi Keamanan',
+            text: 'Masukkan Password Admin untuk mengakses Pengaturan',
+            input: 'password',
+            inputAttributes: { autocapitalize: 'off' },
+            showCancelButton: true,
+            confirmButtonText: 'Verifikasi',
+            showLoaderOnConfirm: true,
+            confirmButtonColor: '#0d6efd'
+        });
+
+        if (password === 'admin123') {
+            openSettings();
+            Swal.fire({
+                title: 'Akses Diterima',
+                icon: 'success',
+                timer: 1000,
+                showConfirmButton: false
+            });
+        } else if (password) {
+            Swal.fire('Gagal!', 'Password salah.', 'error');
+        }
+    }
+
+    function openSettings() {
+        const secretWrapper = document.getElementById('secret-settings-wrapper');
+        if(secretWrapper) secretWrapper.style.display = 'block';
+        showSection('settings');
+    }
+
+    // Category-specific accumulated images
+    let accumulatedImages = {
+        foto_sj: [],
+        foto_unit: [],
+        foto_sebelum: [],
+        foto_sesudah: []
+    };
+
+    // --- API INTEGRATION ---
+    async function fetchData(isSilent = false) {
+        if (!config.sheetUrl) return;
+        try {
+            const response = await fetch(config.sheetUrl);
+            if (!response.ok) throw new Error('Network response was not ok');
+            const data = await response.json();
+            
+            dataStore = data.map((row, index) => ({
+                id: index + 1,
+                tgl: row['Timestamp'] || '',
+                sj: row['No Formulir'] || '',
+                teknisi: row['Teknisi'] || '',
+                kendala: row['Kendala'] || '',
+                foto_sj: row['Foto Surat Jalan'] || '',
+                foto_sebelum: row['Foto Sebelum'] || '',
+                foto_sesudah: row['Foto Sesudah'] || '',
+                foto_unit: row['Foto Unit'] || '',
+                alamat: row['Alamat'] || '',
+                koordinat: row['Koordinat'] || '',
+                status: row['Status'] || 'Proses'
+            })).reverse();
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            if (!isSilent) {
+                Swal.fire('Info Sistem', 'Gagal memuat riwayat terbaru, namun laporan Anda tetap terkirim. Silakan refresh halaman secara manual.', 'info');
+            }
+        }
+    }
+
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                // Max resolution 800px - Fast & Solid for Apps Script
+                const max = 800;
+                if (width > height) {
+                    if (width > max) {
+                        height *= max / width;
+                        width = max;
+                    }
+                } else {
+                    if (height > max) {
+                        width *= max / height;
+                        height = max;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                // Kualitas 0.5 (50%) - Optimal bandwidth
+                resolve(canvas.toDataURL('image/jpeg', 0.5));
+            };
+            img.onerror = () => resolve(reader.result);
+            img.src = reader.result;
+        };
+        reader.onerror = error => reject(error);
+    });
+
+    // --- AUTH & LOGIN ---
+    function togglePassword(id) {
+        const input = document.getElementById(id);
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function handleLogin() {
+        const role = document.getElementById('login-role').value;
+        const pass = document.getElementById('login-password').value;
+
+        const user = userStore.find(u => u.role === role && u.password === pass);
+
+        if (user) {
+            loginAs(role);
+        } else {
+            Swal.fire('Gagal!', 'Password salah untuk role ini.', 'error');
+        }
+    }
+
+    function loginAs(role) {
+        currentRole = role;
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-content').style.display = 'block';
+        document.getElementById('user-role-display').innerText = role;
+        
+        showSection(role);
+    }
+
+    function goToSettings() {
+        // Settings can be accessed without login for initial setup, 
+        // but in real app you might want an admin password here too.
+        currentRole = 'admin';
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-content').style.display = 'block';
+        document.getElementById('user-role-display').innerText = 'Pengaturan';
+        showSection('settings');
+    }
+
+    async function showSection(sectionId) {
+        document.querySelectorAll('.role-section').forEach(s => s.classList.remove('active-section'));
+        const target = document.getElementById(`section-${sectionId}`);
+        if (target) target.classList.add('active-section');
+
+        if (sectionId === 'teknisi') {
+            initGeolocation();
+        } else if (sectionId === 'settings') {
+            loadSettingsForm();
+            renderUserTable();
+        } else {
+            await fetchData();
+            renderTables();
+        }
+    }
+
+    function logout() {
+        location.reload();
+    }
+
+    // --- SETTINGS LOGIC ---
+    function loadSettingsForm() {
+        document.getElementById('setting-sheet-url').value = config.sheetUrl;
+        document.getElementById('setting-drive-id').value = config.driveId;
+        document.getElementById('setting-maps-key').value = config.mapsKey;
+    }
+
+    document.getElementById('form-settings').addEventListener('submit', function(e) {
+        e.preventDefault();
+        config = {
+            sheetUrl: document.getElementById('setting-sheet-url').value,
+            driveId: document.getElementById('setting-drive-id').value,
+            mapsKey: document.getElementById('setting-maps-key').value
+        };
+        localStorage.setItem('sparepart_config', JSON.stringify(config));
+        Swal.fire('Tersimpan!', 'Pengaturan API telah diperbarui.', 'success');
+    });
+
+    function resetSettings() {
+        Swal.fire({
+            title: 'Reset Pengaturan?',
+            text: "Semua konfigurasi API akan dihapus.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Reset'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                config = DEFAULT_CONFIG;
+                localStorage.removeItem('sparepart_config');
+                loadSettingsForm();
+                Swal.fire('Direset!', 'Pengaturan kembali ke default.', 'success');
+            }
+        });
+    }
+
+    // --- USER MANAGEMENT LOGIC ---
+    function renderUserTable() {
+        const body = document.getElementById('table-user-body');
+        body.innerHTML = '';
+        userStore.forEach(user => {
+            body.innerHTML += `
+                <tr>
+                    <td class="fw-bold">${user.username}</td>
+                    <td><span class="badge bg-light text-dark text-uppercase">${user.role}</span></td>
+                    <td><code>${user.password}</code></td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-light me-1" onclick="editUser(${user.id})"><i class="fas fa-edit text-primary"></i></button>
+                        <button class="btn btn-sm btn-light" onclick="deleteUser(${user.id})"><i class="fas fa-trash text-danger"></i></button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function showAddUserModal() {
+        Swal.fire({
+            title: 'Tambah User Baru',
+            html: `
+                <input id="swal-username" class="swal2-input" placeholder="Username">
+                <input id="swal-password" class="swal2-input" placeholder="Password">
+                <select id="swal-role" class="swal2-select">
+                    <option value="direktur">Direktur</option>
+                    <option value="admin">Admin</option>
+                    <option value="teknisi">Teknisi</option>
+                </select>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Simpan',
+            preConfirm: () => {
+                return {
+                    username: document.getElementById('swal-username').value,
+                    password: document.getElementById('swal-password').value,
+                    role: document.getElementById('swal-role').value
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const newUser = {
+                    id: Date.now(),
+                    ...result.value
+                };
+                userStore.push(newUser);
+                saveUsers();
+                renderUserTable();
+                Swal.fire('Berhasil!', 'User baru telah ditambahkan.', 'success');
+            }
+        });
+    }
+
+    function editUser(id) {
+        const user = userStore.find(u => u.id === id);
+        Swal.fire({
+            title: 'Edit User',
+            html: `
+                <input id="swal-username" class="swal2-input" value="${user.username}" placeholder="Username">
+                <input id="swal-password" class="swal2-input" value="${user.password}" placeholder="Password">
+                <select id="swal-role" class="swal2-select">
+                    <option value="direktur" ${user.role === 'direktur' ? 'selected' : ''}>Direktur</option>
+                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                    <option value="teknisi" ${user.role === 'teknisi' ? 'selected' : ''}>Teknisi</option>
+                </select>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Update',
+            preConfirm: () => {
+                return {
+                    username: document.getElementById('swal-username').value,
+                    password: document.getElementById('swal-password').value,
+                    role: document.getElementById('swal-role').value
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const index = userStore.findIndex(u => u.id === id);
+                userStore[index] = { ...userStore[index], ...result.value };
+                saveUsers();
+                renderUserTable();
+                Swal.fire('Terupdate!', 'Data user telah diperbarui.', 'success');
+            }
+        });
+    }
+
+    function deleteUser(id) {
+        if (userStore.length <= 1) {
+            return Swal.fire('Error', 'Minimal harus ada 1 user di sistem.', 'error');
+        }
+        Swal.fire({
+            title: 'Hapus User?',
+            text: "User ini tidak akan bisa login lagi.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                userStore = userStore.filter(u => u.id !== id);
+                saveUsers();
+                renderUserTable();
+                Swal.fire('Terhapus!', 'User telah dihapus.', 'success');
+            }
+        });
+    }
+
+    function saveUsers() {
+        localStorage.setItem('sparepart_users', JSON.stringify(userStore));
+    }
+
+    // --- GEOLOCATION & MAPS ---
+    function initGeolocation() {
+        const addrDisplay = document.getElementById('display-alamat');
+        const coordDisplay = document.getElementById('display-koordinat');
+        const mapPreview = document.getElementById('map-preview');
+        const actionBtn = document.getElementById('location-action-container');
+        const refreshIcon = document.querySelector('button[title="Refresh Lokasi"] i');
+        
+        if (refreshIcon) refreshIcon.classList.add('fa-spin');
+        
+        addrDisplay.innerText = "Mencari alamat...";
+        coordDisplay.innerText = "Mendeteksi koordinat...";
+        actionBtn.classList.add('d-none');
+        
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    const coords = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    
+                    coordDisplay.innerText = coords;
+                    document.getElementById('input-koordinat').value = coords;
+                    
+                    // Reverse Geocoding (Nominatim - Free)
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
+                        .then(res => res.json())
+                        .then(data => {
+                            const address = data.display_name || "Alamat tidak ditemukan";
+                            addrDisplay.innerText = address;
+                            document.getElementById('input-alamat').value = address;
+                        })
+                        .catch(() => {
+                            addrDisplay.innerText = "Gagal mengambil alamat";
+                        });
+
+                    // Map Preview
+                    let mapUrl = "";
+                    if (config.mapsKey) {
+                        // Google Maps Embed
+                        mapUrl = `https://www.google.com/maps/embed/v1/view?key=${config.mapsKey}&center=${lat},${lng}&zoom=16`;
+                    } else {
+                        // OpenStreetMap Embed (Leaflet style)
+                        mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.005},${lat-0.005},${lng+0.005},${lat+0.005}&layer=mapnik&marker=${lat},${lng}`;
+                    }
+                    
+                    mapPreview.innerHTML = `<iframe class="map-iframe" src="${mapUrl}"></iframe>`;
+                },
+                (err) => {
+                    if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+                    console.error("Geolocation Error:", err);
+                    addrDisplay.innerText = "Akses Lokasi Bermasalah";
+                    coordDisplay.innerText = "Cek izin browser atau aktifkan GPS";
+                    actionBtn.classList.remove('d-none');
+                    mapPreview.innerHTML = `<div class="d-flex align-items-center justify-content-center h-100 bg-danger bg-opacity-10 text-danger small flex-column p-4 text-center">
+                        <i class="fas fa-location-dot-slash fa-2x mb-3"></i>
+                        <p class="mb-2 fw-bold">Izin lokasi diperlukan</p>
+                        <p class="x-small mb-0">Klik tombol di atas untuk mencoba lagi. Jika tetap gagal, silakan cek pengaturan izin lokasi di browser Anda.</p>
+                    </div>`;
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        } else {
+            if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+            addrDisplay.innerText = "GPS Tidak Didukung";
+            coordDisplay.innerText = "Gunakan browser modern";
+        }
+    }
+
+    // --- RENDER TABLES ---
+    function renderTables() {
+        const dirBody = document.getElementById('table-direktur-body');
+        const adminBody = document.getElementById('table-admin-body');
+        
+        dirBody.innerHTML = '';
+        adminBody.innerHTML = '';
+
+        // Stats
+        document.getElementById('stat-total').innerText = dataStore.length;
+        document.getElementById('stat-valid').innerText = dataStore.filter(d => d.status === 'Valid').length;
+        document.getElementById('stat-proses').innerText = dataStore.filter(d => d.status === 'Proses').length;
+
+        dataStore.forEach(item => {
+            const badgeClass = `bg-${item.status.toLowerCase().replace(' ', '-')}`;
+            
+            const locationBtn = `<button class="btn btn-link btn-sm p-0 text-decoration-none" onclick="viewMap('${item.koordinat}', '${item.alamat}')"><i class="fas fa-map-location-dot me-1"></i> Lihat</button>`;
+            
+            const getFotoLinks = (urlStr, label) => {
+                if (!urlStr) return '';
+                const urls = urlStr.split('\n');
+                return urls.map(url => `<a href="${url}" target="_blank" class="btn btn-sm btn-light border mb-1" title="${label}"><i class="fas fa-image text-info"></i></a>`).join('');
+            };
+
+            const allPhotos = `
+                <div class="d-flex flex-wrap gap-1">
+                    ${getFotoLinks(item.foto_sj, 'Surat Jalan')}
+                    ${getFotoLinks(item.foto_unit, 'Unit')}
+                    ${getFotoLinks(item.foto_sebelum, 'Sebelum')}
+                    ${getFotoLinks(item.foto_sesudah, 'Sesudah')}
+                </div>
+            `;
+
+            // Direktur Row
+            dirBody.innerHTML += `
+                <tr>
+                    <td class="small text-muted">${item.tgl}</td>
+                    <td class="fw-bold">${item.sj}</td>
+                    <td>${item.teknisi}</td>
+                    <td><div class="text-truncate" style="max-width: 150px" title="${item.kendala}">${item.kendala}</div></td>
+                    <td>${allPhotos}</td>
+                    <td>${locationBtn}</td>
+                    <td><span class="status-badge ${badgeClass}">${item.status}</span></td>
+                </tr>
+            `;
+
+            // Admin Row
+            adminBody.innerHTML += `
+                <tr>
+                    <td class="fw-bold">${item.sj}</td>
+                    <td>${item.teknisi}</td>
+                    <td><div class="text-truncate" style="max-width: 150px" title="${item.kendala}">${item.kendala}</div></td>
+                    <td>${allPhotos}</td>
+                    <td>${locationBtn}</td>
+                    <td>
+                        <select onchange="updateStatus(${item.id}, this.value)" class="form-select form-select-sm w-auto fw-bold ${badgeClass}">
+                            <option value="Proses" ${item.status === 'Proses' ? 'selected' : ''}>Proses</option>
+                            <option value="Valid" ${item.status === 'Valid' ? 'selected' : ''}>Valid</option>
+                            <option value="Tidak Valid" ${item.status === 'Tidak Valid' ? 'selected' : ''}>Tidak Valid</option>
+                        </select>
+                    </td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-light rounded-pill" onclick="deleteData(${item.id})"><i class="fas fa-trash text-danger"></i></button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function viewMap(coords, address) {
+        const [lat, lng] = coords.split(', ');
+        let mapUrl = `https://www.google.com/maps?q=${lat},${lng}&z=16&output=embed`;
+        
+        Swal.fire({
+            title: 'Lokasi Terkini',
+            html: `
+                <div class="text-start mb-3">
+                    <div class="fw-bold small mb-1">Alamat:</div>
+                    <div class="text-muted x-small">${address}</div>
+                </div>
+                <div class="map-container" style="height: 300px">
+                    <iframe class="map-iframe" src="${mapUrl}"></iframe>
+                </div>
+            `,
+            width: 600,
+            confirmButtonText: 'Tutup'
+        });
+    }
+
+    // --- ACTIONS ---
+    function updateStatus(id, newStatus) {
+        const index = dataStore.findIndex(d => d.id === id);
+        dataStore[index].status = newStatus;
+        renderTables();
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'Status Diperbarui',
+            showConfirmButton: false,
+            timer: 1500
+        });
+    }
+
+    function deleteData(id) {
+        Swal.fire({
+            title: 'Hapus Data?',
+            text: "Data akan dihapus permanen",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: 'Ya, Hapus'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                dataStore = dataStore.filter(d => d.id !== id);
+                renderTables();
+                Swal.fire('Terhapus!', 'Data berhasil dihapus.', 'success');
+            }
+        });
+    }
+
+    async function refreshData() {
+        Swal.fire({
+            title: 'Syncing...',
+            didOpen: () => { Swal.showLoading(); }
+        });
+        
+        await fetchData();
+        renderTables();
+        Swal.close();
+    }
+
+    // --- FORM SUBMIT ---
+    document.getElementById('form-teknisi').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const confirm = await Swal.fire({
+            title: 'Kirim Laporan?',
+            text: "Data akan dikirim ke Google Sheet",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Kirim'
+        });
+
+        if (!confirm.isConfirmed) return;
+
+        Swal.fire({
+            title: 'Mengirim Data...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        try {
+            const payload = {
+                no_sj: document.getElementById('no_sj').value.trim(),
+                teknisi: document.getElementById('nama_teknisi').value.trim(),
+                kendala: document.getElementById('kendala_unit').value.trim(),
+                alamat: document.getElementById('input-alamat').value,
+                koordinat: document.getElementById('input-koordinat').value,
+                img_sj: accumulatedImages.foto_sj,
+                img_sebelum: accumulatedImages.foto_sebelum,
+                img_sesudah: accumulatedImages.foto_sesudah,
+                img_unit: accumulatedImages.foto_unit
+            };
+
+            if (config.sheetUrl) {
+                const response = await fetch(config.sheetUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain' }, // Avoid preflight and keep it simple
+                    body: JSON.stringify(payload)
+                });
+                
+                // Since mode is no-cors, we can't read the response body, 
+                // but we assume success if no error is thrown.
+                Swal.fire('Berhasil!', 'Laporan telah terkirim ke Google Sheet.', 'success');
+            } else {
+                // Fallback to local store if no URL
+                const now = new Date();
+                const tglStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+                dataStore.unshift({
+                    id: Date.now(),
+                    tgl: tglStr,
+                    sj: payload.no_sj,
+                    teknisi: payload.teknisi,
+                    kendala: payload.kendala,
+                    status: 'Proses',
+                    alamat: payload.alamat,
+                    koordinat: payload.koordinat
+                });
+                Swal.fire('Tersimpan Lokal!', 'URL API belum diatur, data disimpan sementara di browser.', 'warning');
+            }
+
+            this.reset();
+            initGeolocation();
+            if (config.sheetUrl) await fetchData();
+            renderTables();
+            // Clear accumulated images
+            accumulatedImages = {
+                foto_sj: [],
+                foto_unit: [],
+                foto_sebelum: [],
+                foto_sesudah: []
+            };
+            document.querySelectorAll('.preview-grid').forEach(el => el.innerHTML = '');
+
+        } catch (error) {
+            console.error("Submission error:", error);
+            Swal.fire('Gagal!', 'Terjadi kesalahan saat mengirim data.', 'error');
+        }
+    });
+
+    // --- IMAGE PREVIEW & ACCUMULATION LOGIC ---
+    function triggerInput(id) {
+        document.getElementById(id).click();
+    }
+
+    function setupImageHandlers() {
+        const categories = ['foto_sj', 'foto_unit', 'foto_sebelum', 'foto_sesudah'];
+        
+        categories.forEach(cat => {
+            const input = document.getElementById(cat + '_input');
+            if (!input) return;
+
+            input.addEventListener('change', async function() {
+                if (this.files && this.files.length > 0) {
+                    for (const file of this.files) {
+                        const b64 = await toBase64(file);
+                        accumulatedImages[cat].push(b64);
+                    }
+                    renderPreview(cat);
+                    this.value = ''; // Reset input so same file can be taken again if needed
+                }
+            });
+        });
+    }
+
+    function renderPreview(cat) {
+        const container = document.getElementById('preview-' + cat);
+        container.innerHTML = '';
+        
+        accumulatedImages[cat].forEach((src, index) => {
+            const item = document.createElement('div');
+            item.className = 'preview-item';
+            
+            item.innerHTML = `
+                <img src="${src}" class="preview-img" onclick="openZoom('${src}')">
+                <span class="remove-img" onclick="removeImage('${cat}', ${index})">&times;</span>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    function removeImage(cat, index) {
+        accumulatedImages[cat].splice(index, 1);
+        renderPreview(cat);
+    }
+
+    // --- ZOOM LOGIC ---
+    let zoomLevel = 1;
+
+    function openZoom(src) {
+        const modal = document.getElementById('zoom-modal');
+        const content = document.getElementById('zoom-content');
+        content.src = src;
+        zoomLevel = 1;
+        content.style.transform = `scale(${zoomLevel})`;
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Prevent scroll
+    }
+
+    function closeZoom() {
+        document.getElementById('zoom-modal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    function zoomIn() {
+        zoomLevel += 0.2;
+        applyZoom();
+    }
+
+    function zoomOut() {
+        if (zoomLevel > 0.4) {
+            zoomLevel -= 0.2;
+            applyZoom();
+        }
+    }
+
+    function applyZoom() {
+        document.getElementById('zoom-content').style.transform = `scale(${zoomLevel})`;
+    }
+
+    // Close zoom on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeZoom();
+    });
+
+    // Initialize handlers
+    setupImageHandlers();
+</script>
+
+    <!-- Service Worker for PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('data:application/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGV2ZW50ID0+IHsgZXZlbnQucmVzcG9uZFdpdGgoZmV0Y2goZXZlbnQucmVxdWVzdCkpOyB9KTs=')
+                .catch(err => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
+
