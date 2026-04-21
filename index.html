@@ -266,6 +266,39 @@
             z-index: 10;
         }
 
+        /* Documentation Modal */
+        .doc-category-card {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 20px;
+            height: 100%;
+            border: 1px solid #e9ecef;
+        }
+        .doc-photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+        .doc-photo-item {
+            aspect-ratio: 1;
+            overflow: hidden;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: all 0.2s ease;
+        }
+        .doc-photo-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+        }
+        .doc-photo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         /* Zoom Modal */
         #zoom-modal {
             display: none;
@@ -658,9 +691,14 @@
                                 <div class="tab-pane fade" id="user-settings" role="tabpanel">
                                     <div class="d-flex justify-content-between align-items-center mb-4">
                                         <h6 class="fw-bold text-primary mb-0">Daftar Pengguna Sistem</h6>
-                                        <button class="btn btn-primary btn-sm" onclick="showAddUserModal()">
-                                            <i class="fas fa-user-plus me-2"></i> Tambah User
-                                        </button>
+                                        <div>
+                                            <button onclick="factoryReset()" class="btn btn-outline-danger btn-sm me-2">
+                                                <i class="fas fa-trash-can me-1"></i> Factory Reset
+                                            </button>
+                                            <button class="btn btn-primary btn-sm" onclick="showAddUserModal()">
+                                                <i class="fas fa-user-plus me-2"></i> Tambah User
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="table-responsive">
                                         <table class="table table-hover align-middle">
@@ -694,12 +732,42 @@
 </div>
 
 <!-- ZOOM MODAL -->
-<div id="zoom-modal">
+<div id="zoom-modal" style="display: none;">
     <span class="close-zoom" onclick="closeZoom()">&times;</span>
     <img id="zoom-content" src="" alt="Zoomed view">
     <div class="zoom-controls">
         <button class="zoom-btn" onclick="zoomIn()"><i class="fas fa-search-plus"></i></button>
         <button class="zoom-btn" onclick="zoomOut()"><i class="fas fa-search-minus"></i></button>
+        <button class="zoom-btn" onclick="openOriginal()" title="Buka Link Drive Original"><i class="fas fa-external-link-alt"></i></button>
+        <button class="zoom-btn" onclick="closeZoom()"><i class="fas fa-times"></i></button>
+    </div>
+</div>
+
+<!-- DOCUMENTATION MODAL -->
+<div class="modal fade" id="docModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary bg-opacity-10 p-2 rounded-3 me-3">
+                        <i class="fas fa-images text-primary"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold">Dokumentasi Foto Lapangan</h5>
+                        <p class="text-muted x-small mb-0" id="doc-sj-title"></p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-4 p-4">
+                <div id="doc-container" class="row g-4">
+                    <!-- Photo categories injected here -->
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -860,14 +928,24 @@
 
     function handleLogin() {
         const role = document.getElementById('login-role').value;
-        const pass = document.getElementById('login-password').value;
+        const pass = document.getElementById('login-password').value.trim(); // Trim and check
+
+        if (!pass) {
+            Swal.fire('Input Kosong', 'Silakan masukkan password.', 'warning');
+            return;
+        }
 
         const user = userStore.find(u => u.role === role && u.password === pass);
 
         if (user) {
             loginAs(role);
         } else {
-            Swal.fire('Gagal!', 'Password salah untuk role ini.', 'error');
+            Swal.fire({
+                title: 'Gagal!',
+                text: 'Password salah untuk role ini. Pastikan tidak ada kesalahan huruf besar/kecil (Caps Lock) dan tidak ada spasi di awal/akhir.',
+                icon: 'error',
+                footer: '<a href="javascript:void(0)" onclick="handleSecretClick();handleSecretClick();handleSecretClick();handleSecretClick();handleSecretClick();handleSecretClick();handleSecretClick();">Masalah login? Klik di sini 7x</a>'
+            });
         }
     }
 
@@ -941,6 +1019,22 @@
                 localStorage.removeItem('sparepart_config');
                 loadSettingsForm();
                 Swal.fire('Direset!', 'Pengaturan kembali ke default.', 'success');
+            }
+        });
+    }
+
+    function factoryReset() {
+        Swal.fire({
+            title: 'Factory Reset?',
+            text: "Seluruh data, user, dan pengaturan akan dikembalikan ke setelan pabrik. Aplikasi akan dimuat ulang.",
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Ya, Reset Total'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                localStorage.clear();
+                window.location.reload();
             }
         });
     }
@@ -1144,19 +1238,10 @@
             
             const locationBtn = `<button class="btn btn-link btn-sm p-0 text-decoration-none" onclick="viewMap('${item.koordinat}', '${item.alamat}')"><i class="fas fa-map-location-dot me-1"></i> Lihat</button>`;
             
-            const getFotoLinks = (urlStr, label) => {
-                if (!urlStr) return '';
-                const urls = urlStr.split('\n');
-                return urls.map(url => `<a href="${url}" target="_blank" class="btn btn-sm btn-light border mb-1" title="${label}"><i class="fas fa-image text-info"></i></a>`).join('');
-            };
-
-            const allPhotos = `
-                <div class="d-flex flex-wrap gap-1">
-                    ${getFotoLinks(item.foto_sj, 'Surat Jalan')}
-                    ${getFotoLinks(item.foto_unit, 'Unit')}
-                    ${getFotoLinks(item.foto_sebelum, 'Sebelum')}
-                    ${getFotoLinks(item.foto_sesudah, 'Sesudah')}
-                </div>
+            const photoAction = `
+                <button class="btn btn-primary btn-sm px-3 rounded-pill" onclick="viewDocumentation(${item.id})">
+                    <i class="fas fa-images me-1"></i> Lihat Foto
+                </button>
             `;
 
             // Direktur Row
@@ -1166,7 +1251,7 @@
                     <td class="fw-bold">${item.sj}</td>
                     <td>${item.teknisi}</td>
                     <td><div class="text-truncate" style="max-width: 150px" title="${item.kendala}">${item.kendala}</div></td>
-                    <td>${allPhotos}</td>
+                    <td>${photoAction}</td>
                     <td>${locationBtn}</td>
                     <td><span class="status-badge ${badgeClass}">${item.status}</span></td>
                 </tr>
@@ -1178,7 +1263,7 @@
                     <td class="fw-bold">${item.sj}</td>
                     <td>${item.teknisi}</td>
                     <td><div class="text-truncate" style="max-width: 150px" title="${item.kendala}">${item.kendala}</div></td>
-                    <td>${allPhotos}</td>
+                    <td>${photoAction}</td>
                     <td>${locationBtn}</td>
                     <td>
                         <select onchange="updateStatus(${item.id}, this.value)" class="form-select form-select-sm w-auto fw-bold ${badgeClass}">
@@ -1193,6 +1278,77 @@
                 </tr>
             `;
         });
+    }
+
+    // --- HELPER: GOOGLE DRIVE DIRECT LINK ---
+    function getDirectLink(url, size = 1000) {
+        if (!url) return '';
+        if (!url.includes('drive.google.com')) return url;
+        
+        const regId = /\/d\/([^\/]+)|id=([^\&]+)/;
+        const match = url.match(regId);
+        if (match) {
+            const id = match[1] || match[2];
+            // Thumbnail API is much more reliable for embedding in web apps
+            return `https://drive.google.com/thumbnail?id=${id}&sz=w${size}`;
+        }
+        return url;
+    }
+
+    function viewDocumentation(id) {
+        const item = dataStore.find(d => d.id === id);
+        if (!item) return;
+
+        document.getElementById('doc-sj-title').innerText = `Nomor SJ: ${item.sj} | Teknisi: ${item.teknisi}`;
+        
+        const container = document.getElementById('doc-container');
+        container.innerHTML = '';
+
+        const categories = [
+            { id: 'foto_sj', label: 'Surat Jalan', icon: 'fa-file-invoice', data: item.foto_sj },
+            { id: 'foto_unit', label: 'Unit / No. Seri', icon: 'fa-microchip', data: item.foto_unit },
+            { id: 'foto_sebelum', label: 'Sparepart Sebelum Instalasi', icon: 'fa-history', data: item.foto_sebelum },
+            { id: 'foto_sesudah', label: 'Sparepart Sesudah Instalasi', icon: 'fa-check-circle', data: item.foto_sesudah }
+        ];
+
+        categories.forEach(cat => {
+            const urls = cat.data ? cat.data.split('\n') : [];
+            
+            const col = document.createElement('div');
+            col.className = 'col-md-6';
+            
+            let photoGrid = '';
+            if (urls.length > 0) {
+                urls.forEach(url => {
+                    const thumbUrl = getDirectLink(url, 400); // Small for grid
+                    const fullUrl = getDirectLink(url, 1600); // Large for zoom
+                    photoGrid += `
+                        <div class="doc-photo-item" onclick="openZoom('${fullUrl}', '${url}')">
+                            <img src="${thumbUrl}" class="doc-photo-img" loading="lazy" referrerPolicy="no-referrer" onerror="this.src='https://placehold.co/400x400?text=Format+Error'">
+                        </div>
+                    `;
+                });
+            } else {
+                photoGrid = '<div class="text-muted x-small italic p-3 text-center border rounded-3 bg-white">Tidak ada foto dokumentasi</div>';
+            }
+
+            col.innerHTML = `
+                <div class="doc-category-card">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas ${cat.icon} text-primary me-2"></i>
+                        <h6 class="fw-bold mb-0 small text-uppercase letter-spacing-1">${cat.label}</h6>
+                        <span class="ms-auto badge bg-primary bg-opacity-10 text-primary">${urls.length} Foto</span>
+                    </div>
+                    <div class="doc-photo-grid">
+                        ${photoGrid}
+                    </div>
+                </div>
+            `;
+            container.appendChild(col);
+        });
+
+        const docModal = new bootstrap.Modal(document.getElementById('docModal'));
+        docModal.show();
     }
 
     function viewMap(coords, address) {
@@ -1387,14 +1543,22 @@
     // --- ZOOM LOGIC ---
     let zoomLevel = 1;
 
-    function openZoom(src) {
+    function openZoom(src, originalUrl = '') {
         const modal = document.getElementById('zoom-modal');
         const content = document.getElementById('zoom-content');
         content.src = src;
         zoomLevel = 1;
         content.style.transform = `scale(${zoomLevel})`;
         modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden'; // Prevent scroll
+        document.body.style.overflow = 'hidden'; 
+
+        // Store original for fallback
+        modal.dataset.original = originalUrl;
+    }
+
+    function openOriginal() {
+        const url = document.getElementById('zoom-modal').dataset.original;
+        if (url) window.open(url, '_blank');
     }
 
     function closeZoom() {
