@@ -320,7 +320,6 @@
             cursor: pointer;
         }
 
-        /* Spinner kecil saat status sedang disimpan */
         .status-saving {
             opacity: 0.5;
             pointer-events: none;
@@ -389,6 +388,78 @@
         }
         .new-data-toast.show {
             transform: translateX(-50%) translateY(0);
+        }
+
+        /* ── DRAFT BANNER ── */
+        #draft-banner {
+            display: none;
+            position: sticky;
+            top: 0;
+            z-index: 800;
+            background: linear-gradient(90deg, #fff3cd, #fffbe6);
+            border-bottom: 2px solid #ffc107;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #7a5c00;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(255,193,7,0.2);
+            animation: slideDown 0.4s ease;
+        }
+        #draft-banner.show { display: flex; }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to   { transform: translateY(0);     opacity: 1; }
+        }
+
+        .draft-pulse {
+            width: 8px; height: 8px;
+            background: #ffc107;
+            border-radius: 50%;
+            animation: pulseDot 1.2s infinite;
+            flex-shrink: 0;
+        }
+
+        /* ── QUALITY BADGE di foto upload ── */
+        .quality-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 3px 8px;
+            border-radius: 100px;
+            background: #ebfbee;
+            color: #2b8a3e;
+            margin-top: 4px;
+        }
+
+        /* ── AUTO-SAVE pulse di corner form ── */
+        .autosave-indicator {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            font-size: 11px;
+            color: #adb5bd;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .autosave-indicator.saved {
+            color: #2b8a3e;
+        }
+        .autosave-indicator .save-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        .autosave-indicator.saving .save-dot {
+            animation: pulseDot 0.6s infinite;
         }
     </style>
 </head>
@@ -469,7 +540,7 @@
         </div>
         
         <div class="mt-4 pt-3 border-top">
-            <p class="text-muted x-small mb-0">v2.3 Professional Edition</p>
+            <p class="text-muted x-small mb-0">v2.4 Professional Edition</p>
         </div>
     </div>
 </div>
@@ -480,7 +551,6 @@
         <div class="container">
             <a class="navbar-brand" href="#"><i class="fas fa-bolt me-2"></i>TRACK-PART</a>
             <div class="d-flex align-items-center gap-2">
-                <!-- AUTO-SYNC INDICATOR (hanya muncul untuk admin/direktur) -->
                 <div id="sync-indicator" class="d-none me-1" title="Status sinkronisasi otomatis">
                     <span id="sync-dot"></span>
                     <span id="sync-label">Live</span>
@@ -495,6 +565,18 @@
             </div>
         </div>
     </nav>
+
+    <!-- DRAFT BANNER — muncul saat ada draft tersimpan -->
+    <div id="draft-banner">
+        <span class="draft-pulse"></span>
+        <span><i class="fas fa-floppy-disk me-1"></i> Draft laporan ditemukan dari sesi sebelumnya.</span>
+        <button class="btn btn-warning btn-sm rounded-pill px-3 ms-auto" onclick="restoreDraft()">
+            <i class="fas fa-rotate-left me-1"></i> Lanjutkan
+        </button>
+        <button class="btn btn-light btn-sm rounded-pill px-3" onclick="discardDraft()">
+            <i class="fas fa-trash me-1"></i> Hapus
+        </button>
+    </div>
 
     <!-- TOAST: notifikasi data baru masuk -->
     <div id="new-data-toast" class="new-data-toast" onclick="dismissNewDataToast()">
@@ -681,37 +763,51 @@
         <section id="section-teknisi" class="role-section">
             <div class="row justify-content-center">
                 <div class="col-lg-6">
-                    <div class="card">
+                    <div class="card" style="position: relative;">
                         <div class="card-header text-center py-4">
                             <h5 class="fw-bold mb-0">Form Laporan Lapangan</h5>
                         </div>
+                        <!-- AUTOSAVE INDICATOR -->
+                        <div class="autosave-indicator" id="autosave-indicator">
+                            <span class="save-dot"></span>
+                            <span id="autosave-label">Siap</span>
+                        </div>
                         <div class="card-body p-4">
+                            <!-- INFO KUALITAS FOTO -->
+                            <div class="alert alert-success border-0 rounded-3 py-2 px-3 mb-3 d-flex align-items-center gap-2" style="background: #ebfbee;">
+                                <i class="fas fa-image text-success"></i>
+                                <span class="small fw-bold text-success">Foto dikirim dalam kualitas penuh (tanpa kompresi)</span>
+                                <span class="ms-auto quality-badge"><i class="fas fa-star"></i> HD</span>
+                            </div>
+
                             <form id="form-teknisi">
                                 <div class="row g-3">
                                     <div class="col-12">
                                         <label class="form-label">Nomor Formulir Surat</label>
-                                        <input type="text" id="no_sj" class="form-control" placeholder="Contoh: FRM/123/2024" required>
+                                        <input type="text" id="no_sj" class="form-control draft-field" placeholder="Contoh: FRM/123/2024" required>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label">Nama Teknisi</label>
-                                        <input type="text" id="nama_teknisi" class="form-control" placeholder="Nama Lengkap" required>
+                                        <input type="text" id="nama_teknisi" class="form-control draft-field" placeholder="Nama Lengkap" required>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label">Penjelasan Kendala Unit</label>
-                                        <textarea id="kendala_unit" class="form-control" rows="3" placeholder="Sebutkan kendala atau alasan penggantian sparepart..." required></textarea>
+                                        <textarea id="kendala_unit" class="form-control draft-field" rows="3" placeholder="Sebutkan kendala atau alasan penggantian sparepart..." required></textarea>
                                     </div>
                                     
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold">Foto Surat Jalan</label>
-                                        <input type="file" id="foto_sj_input" class="d-none" accept="image/*" capture="environment">
+                                        <div class="x-small text-muted mb-1"><i class="fas fa-info-circle me-1"></i>Semua foto tersimpan otomatis sebagai draft</div>
+                                        <input type="file" id="foto_sj_input" class="d-none" accept="image/*" capture="environment" multiple>
                                         <button type="button" class="btn btn-light w-100 border py-2 mb-2" onclick="triggerInput('foto_sj_input')">
                                             <i class="fas fa-camera me-2"></i> Ambil Foto SJ
                                         </button>
                                         <div id="preview-foto_sj" class="preview-grid"></div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label small fw-bold">Foto Unit & Plat Seri</label>
-                                        <input type="file" id="foto_unit_input" class="d-none" accept="image/*" capture="environment">
+                                        <label class="form-label small fw-bold">Foto Unit &amp; Plat Seri</label>
+                                        <div class="x-small text-muted mb-1">&nbsp;</div>
+                                        <input type="file" id="foto_unit_input" class="d-none" accept="image/*" capture="environment" multiple>
                                         <button type="button" class="btn btn-light w-100 border py-2 mb-2" onclick="triggerInput('foto_unit_input')">
                                             <i class="fas fa-camera me-2"></i> Ambil Foto Unit
                                         </button>
@@ -719,24 +815,24 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold">Foto Sparepart Rusak</label>
-                                        <input type="file" id="foto_sebelum_input" class="d-none" accept="image/*" capture="environment">
+                                        <input type="file" id="foto_sebelum_input" class="d-none" accept="image/*" capture="environment" multiple>
                                         <button type="button" class="btn btn-light w-100 border py-2 mb-2" onclick="triggerInput('foto_sebelum_input')">
                                             <i class="fas fa-camera me-2"></i> Ambil Foto Sparepart Rusak
                                         </button>
                                         <div id="preview-foto_sebelum" class="preview-grid"></div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label small fw-bold">Foto Sparepart Baru Sudah Terpasang</label>
-                                        <input type="file" id="foto_sesudah_input" class="d-none" accept="image/*" capture="environment">
+                                        <label class="form-label small fw-bold">Foto Sparepart Baru Terpasang</label>
+                                        <input type="file" id="foto_sesudah_input" class="d-none" accept="image/*" capture="environment" multiple>
                                         <button type="button" class="btn btn-light w-100 border py-2 mb-2" onclick="triggerInput('foto_sesudah_input')">
-                                            <i class="fas fa-camera me-2"></i> Ambil Foto Sparepart Baru Sudah Terpasang
+                                            <i class="fas fa-camera me-2"></i> Ambil Foto Sparepart Baru Terpasang
                                         </button>
                                         <div id="preview-foto_sesudah" class="preview-grid"></div>
                                     </div>
 
                                     <div class="col-12">
                                         <div class="bg-light p-3 rounded-4 border">
-                                            <label class="form-label text-muted x-small text-uppercase fw-bold mb-1">Lokasi Otomatis (GPS & Alamat)</label>
+                                            <label class="form-label text-muted x-small text-uppercase fw-bold mb-1">Lokasi Otomatis (GPS &amp; Alamat)</label>
                                             <div class="d-flex align-items-start mb-2">
                                                 <i class="fas fa-location-dot text-danger mt-1 me-2"></i>
                                                 <div class="flex-grow-1">
@@ -764,6 +860,9 @@
                                     <div class="col-12 mt-4">
                                         <button type="submit" class="btn btn-primary w-100 py-3 shadow">
                                             <i class="fas fa-paper-plane me-2"></i> Kirim Laporan
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary w-100 mt-2 rounded-pill" onclick="discardDraft()">
+                                            <i class="fas fa-trash me-2"></i> Bersihkan Form
                                         </button>
                                     </div>
                                 </div>
@@ -849,7 +948,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Search bar user -->
                                     <div class="mb-3">
                                         <div class="input-group">
                                             <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
@@ -857,13 +955,11 @@
                                         </div>
                                     </div>
 
-                                    <!-- Loading state -->
                                     <div id="user-loading" class="text-center py-5 d-none">
                                         <div class="spinner-border text-primary" role="status"></div>
                                         <p class="text-muted small mt-2">Memuat data pengguna dari Google Sheet...</p>
                                     </div>
 
-                                    <!-- Error state -->
                                     <div id="user-error" class="alert alert-warning rounded-4 border-0 d-none">
                                         <i class="fas fa-triangle-exclamation me-2"></i>
                                         <span id="user-error-msg">Gagal memuat data dari Sheet.</span>
@@ -900,7 +996,7 @@
                         <i class="fas fa-info-circle fa-lg me-3 mt-1"></i>
                         <div class="small">
                             <strong>Konfigurasi API</strong> disimpan secara lokal di browser.<br>
-                            <strong>Data User</strong> tersinkron dua arah dengan Google Sheet tab <strong>User</strong> — tambah, edit, dan hapus user langsung mengubah spreadsheet.
+                            <strong>Data User</strong> tersinkron dua arah dengan Google Sheet tab <strong>User</strong>.
                         </div>
                     </div>
                 </div>
@@ -978,9 +1074,229 @@
     let secretClickCount = 0;
     let secretClickTimer = null;
 
-    let accumulatedImages = {
-        foto_sj: [], foto_unit: [], foto_sebelum: [], foto_sesudah: []
-    };
+    // =========================================================
+    // ✅ FIX 1: FULL-QUALITY IMAGE — tidak ada resize/kompresi
+    // Hanya konversi ke base64 murni, kualitas jpeg 0.95, max 2048px
+    // (sekedar mencegah gambar > 10MB yang akan gagal di Apps Script)
+    // =========================================================
+    const MAX_IMG_PX   = 2048;  // batas aman untuk upload (bukan kualitas — hanya ukuran piksel ekstrem)
+    const JPEG_QUALITY = 0.95;  // 95% — hampir lossless
+
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            const img = new Image();
+            img.onload = () => {
+                let { width, height } = img;
+
+                // Hanya scale-down jika SANGAT besar (>2048px di sisi terpanjang)
+                // Kamera modern umumnya 12–48MP — 2048px cukup tajam untuk dokumen
+                if (width > MAX_IMG_PX || height > MAX_IMG_PX) {
+                    if (width > height) {
+                        height = Math.round(height * MAX_IMG_PX / width);
+                        width  = MAX_IMG_PX;
+                    } else {
+                        width  = Math.round(width  * MAX_IMG_PX / height);
+                        height = MAX_IMG_PX;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width  = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.imageSmoothingEnabled  = true;
+                ctx.imageSmoothingQuality  = 'high';
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Pertahankan format asli jika PNG (lossless), JPEG jika yang lain
+                const outFormat = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+                const quality   = outFormat === 'image/png' ? undefined : JPEG_QUALITY;
+
+                resolve(canvas.toDataURL(outFormat, quality));
+            };
+            img.onerror = () => resolve(reader.result); // fallback: pakai raw
+            img.src = reader.result;
+        };
+        reader.onerror = err => reject(err);
+    });
+
+    // =========================================================
+    // ✅ FIX 2: DRAFT AUTO-SAVE & RESTORE
+    // Kunci penyimpanan di localStorage
+    // =========================================================
+    const DRAFT_KEY        = 'sparepart_draft_v1';
+    const DRAFT_IMAGES_KEY = 'sparepart_draft_images_v1';
+    let   draftSaveTimer   = null;
+    let   draftRestored    = false;
+
+    // Kumpulkan nilai semua field teks form ke objek
+    function collectDraftFields() {
+        return {
+            no_sj:       document.getElementById('no_sj')?.value        || '',
+            nama_teknisi:document.getElementById('nama_teknisi')?.value  || '',
+            kendala_unit:document.getElementById('kendala_unit')?.value  || '',
+            alamat:      document.getElementById('input-alamat')?.value  || '',
+            koordinat:   document.getElementById('input-koordinat')?.value || ''
+        };
+    }
+
+    // Simpan draft (text + gambar) ke localStorage
+    function saveDraft() {
+        try {
+            const fields = collectDraftFields();
+            const hasContent = fields.no_sj || fields.nama_teknisi || fields.kendala_unit ||
+                               Object.values(accumulatedImages).some(arr => arr.length > 0);
+
+            if (!hasContent) return; // jangan simpan draft kosong
+
+            localStorage.setItem(DRAFT_KEY, JSON.stringify({
+                ...fields,
+                savedAt: new Date().toISOString()
+            }));
+
+            // Gambar disimpan terpisah (bisa besar)
+            localStorage.setItem(DRAFT_IMAGES_KEY, JSON.stringify(accumulatedImages));
+
+            // Update UI autosave indicator
+            setAutosaveState('saved');
+            console.log('💾 Draft tersimpan');
+        } catch (e) {
+            // localStorage bisa penuh jika foto terlalu banyak — graceful degrade
+            console.warn('Draft save gagal (mungkin storage penuh):', e);
+            setAutosaveState('error');
+        }
+    }
+
+    // Debounce: simpan 1.5 detik setelah user berhenti mengetik
+    function scheduleDraftSave() {
+        setAutosaveState('saving');
+        clearTimeout(draftSaveTimer);
+        draftSaveTimer = setTimeout(saveDraft, 1500);
+    }
+
+    // Set state indicator autosave
+    function setAutosaveState(state) {
+        const indicator = document.getElementById('autosave-indicator');
+        const label     = document.getElementById('autosave-label');
+        if (!indicator) return;
+        indicator.className = 'autosave-indicator';
+        if (state === 'saving') {
+            indicator.classList.add('saving');
+            label.textContent = 'Menyimpan draft...';
+        } else if (state === 'saved') {
+            indicator.classList.add('saved');
+            const t = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            label.textContent = `Draft disimpan ${t}`;
+        } else if (state === 'error') {
+            label.textContent = 'Draft gagal disimpan';
+        } else {
+            label.textContent = 'Siap';
+        }
+    }
+
+    // Cek apakah ada draft tersimpan
+    function hasDraft() {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (!raw) return false;
+        try {
+            const d = JSON.parse(raw);
+            return !!(d.no_sj || d.nama_teknisi || d.kendala_unit);
+        } catch { return false; }
+    }
+
+    // Tampilkan banner draft
+    function showDraftBanner() {
+        const banner = document.getElementById('draft-banner');
+        if (banner && hasDraft()) banner.classList.add('show');
+    }
+
+    // Restore draft ke form
+    function restoreDraft() {
+        try {
+            const raw    = localStorage.getItem(DRAFT_KEY);
+            const imgRaw = localStorage.getItem(DRAFT_IMAGES_KEY);
+
+            if (raw) {
+                const d = JSON.parse(raw);
+                if (document.getElementById('no_sj'))        document.getElementById('no_sj').value        = d.no_sj        || '';
+                if (document.getElementById('nama_teknisi')) document.getElementById('nama_teknisi').value = d.nama_teknisi || '';
+                if (document.getElementById('kendala_unit')) document.getElementById('kendala_unit').value = d.kendala_unit || '';
+                if (document.getElementById('input-alamat')) {
+                    document.getElementById('input-alamat').value      = d.alamat    || '';
+                    document.getElementById('display-alamat').innerText = d.alamat   || 'Memuat...';
+                }
+                if (document.getElementById('input-koordinat')) {
+                    document.getElementById('input-koordinat').value      = d.koordinat || '';
+                    document.getElementById('display-koordinat').innerText = d.koordinat || '';
+                }
+            }
+
+            if (imgRaw) {
+                const imgs = JSON.parse(imgRaw);
+                accumulatedImages = {
+                    foto_sj:      imgs.foto_sj      || [],
+                    foto_unit:    imgs.foto_unit     || [],
+                    foto_sebelum: imgs.foto_sebelum  || [],
+                    foto_sesudah: imgs.foto_sesudah  || []
+                };
+                ['foto_sj','foto_unit','foto_sebelum','foto_sesudah'].forEach(cat => renderPreview(cat));
+            }
+
+            hideDraftBanner();
+            draftRestored = true;
+            setAutosaveState('saved');
+
+            Swal.fire({
+                toast: true, position: 'top-end', icon: 'success',
+                title: 'Draft berhasil dimuat!',
+                showConfirmButton: false, timer: 2000
+            });
+        } catch (e) {
+            console.error('Restore draft gagal:', e);
+        }
+    }
+
+    // Hapus draft
+    function discardDraft() {
+        Swal.fire({
+            title: 'Bersihkan Form?',
+            text: 'Semua data yang sudah diisi termasuk foto akan dihapus.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: 'Ya, Bersihkan',
+            cancelButtonText: 'Batal'
+        }).then(result => {
+            if (!result.isConfirmed) return;
+            localStorage.removeItem(DRAFT_KEY);
+            localStorage.removeItem(DRAFT_IMAGES_KEY);
+            document.getElementById('form-teknisi')?.reset();
+            accumulatedImages = { foto_sj: [], foto_unit: [], foto_sebelum: [], foto_sesudah: [] };
+            document.querySelectorAll('.preview-grid').forEach(el => el.innerHTML = '');
+            hideDraftBanner();
+            setAutosaveState('');
+            document.getElementById('display-alamat').innerText  = 'Mencari alamat...';
+            document.getElementById('display-koordinat').innerText = 'Mendeteksi koordinat...';
+            document.getElementById('input-alamat').value    = '';
+            document.getElementById('input-koordinat').value = '';
+            initGeolocation();
+        });
+    }
+
+    function hideDraftBanner() {
+        const banner = document.getElementById('draft-banner');
+        if (banner) banner.classList.remove('show');
+    }
+
+    // Pasang listener auto-save ke semua field dengan class .draft-field
+    function setupDraftListeners() {
+        document.querySelectorAll('.draft-field').forEach(el => {
+            el.addEventListener('input', scheduleDraftSave);
+        });
+    }
 
     // =========================================================
     // SECRET SETTINGS ACCESS
@@ -1051,28 +1367,6 @@
         }
     }
 
-    const toBase64 = file => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width, height = img.height;
-                const max = 800;
-                if (width > height) { if (width > max) { height *= max / width; width = max; } }
-                else { if (height > max) { width *= max / height; height = max; } }
-                canvas.width = width; canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                resolve(canvas.toDataURL('image/jpeg', 0.5));
-            };
-            img.onerror = () => resolve(reader.result);
-            img.src = reader.result;
-        };
-        reader.onerror = error => reject(error);
-    });
-
     // =========================================================
     // AUTH & LOGIN
     // =========================================================
@@ -1108,7 +1402,7 @@
         } else {
             Swal.fire({
                 title: 'Gagal!',
-                text: 'Password salah atau akun tidak aktif. Pastikan tidak ada kesalahan huruf besar/kecil (Caps Lock).',
+                text: 'Password salah atau akun tidak aktif.',
                 icon: 'error',
                 footer: '<a href="javascript:void(0)" onclick="handleSecretClick();handleSecretClick();handleSecretClick();handleSecretClick();handleSecretClick();handleSecretClick();handleSecretClick();">Masalah login? Klik di sini 7x</a>'
             });
@@ -1121,6 +1415,13 @@
         document.getElementById('app-content').style.display = 'block';
         document.getElementById('user-role-display').innerText = role;
         showSection(role);
+
+        // Cek draft saat login sebagai teknisi
+        if (role === 'teknisi') {
+            setTimeout(() => {
+                if (hasDraft()) showDraftBanner();
+            }, 600);
+        }
     }
 
     function goToSettings() {
@@ -1139,13 +1440,12 @@
         if (sectionId === 'teknisi') {
             stopAutoSync();
             initGeolocation();
+            setupDraftListeners();
         } else if (sectionId === 'settings') {
             stopAutoSync();
             loadSettingsForm();
-            // Auto-load users dari sheet saat pertama masuk settings
             loadUsersFromSheet();
         } else {
-            // admin atau direktur — aktifkan auto-sync
             startAutoSync();
         }
     }
@@ -1199,13 +1499,10 @@
     }
 
     // =========================================================
-    // USER MANAGEMENT — CRUD TERSINKRON KE GOOGLE SHEET (tab: User)
+    // USER MANAGEMENT
     // =========================================================
-
-    // HAK AKSES yang tersedia (sesuai sheet)
     const HAK_OPTIONS = ['Super', 'Admin', 'Teknisi', 'Admin Cabang'];
 
-    // Map hak akses sheet → role internal (untuk login logic)
     function hakToRole(hak) {
         const map = {
             'Super':        'direktur',
@@ -1216,13 +1513,11 @@
         return map[hak] || 'teknisi';
     }
 
-    // userStore sekarang hanya fallback lokal; sumber utama = Sheet
-    let sheetUsers = []; // array dari Google Sheet tab User
+    let sheetUsers = [];
 
-    /** ── LOAD users dari Google Sheet ── */
     async function loadUsersFromSheet() {
         if (!config.sheetUrl) {
-            showUserError('URL Apps Script belum dikonfigurasi. Silakan isi di tab Konfigurasi API.');
+            showUserError('URL Apps Script belum dikonfigurasi.');
             return;
         }
         setUserLoading(true);
@@ -1233,19 +1528,15 @@
             const res = await fetch(url);
             if (!res.ok) throw new Error('HTTP ' + res.status);
             const json = await res.json();
-
             if (json.error) throw new Error(json.error);
-
-            sheetUsers = json; // array of { id, nama, hak, password, status }
+            sheetUsers = json;
             renderUserTable();
-
             const now = new Date().toLocaleTimeString('id-ID');
             const el  = document.getElementById('user-last-sync');
             if (el) el.textContent = 'Terakhir sync: ' + now;
-
         } catch (err) {
             console.warn('loadUsersFromSheet error:', err);
-            showUserError('Gagal memuat dari Sheet: ' + err.message + '. Pastikan Apps Script sudah dideploy ulang.');
+            showUserError('Gagal memuat dari Sheet: ' + err.message);
         } finally {
             setUserLoading(false);
         }
@@ -1270,113 +1561,65 @@
         if (el) el.classList.add('d-none');
     }
 
-    /** ── RENDER tabel user ── */
     function renderUserTable() {
         const body      = document.getElementById('table-user-body');
         const countEl   = document.getElementById('user-count-label');
         const searchVal = (document.getElementById('search-user')?.value || '').toLowerCase();
-
         if (!body) return;
-
         const filtered = sheetUsers.filter(u =>
             u.nama.toLowerCase().includes(searchVal) ||
             u.hak.toLowerCase().includes(searchVal)
         );
-
         if (countEl) countEl.textContent = `${filtered.length} dari ${sheetUsers.length} pengguna`;
-
         if (filtered.length === 0) {
-            body.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">
-                <i class="fas fa-users-slash fa-lg mb-2 d-block"></i>
-                ${sheetUsers.length === 0 ? 'Belum ada data user di Sheet.' : 'Tidak ada hasil pencarian.'}
-            </td></tr>`;
+            body.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4"><i class="fas fa-users-slash fa-lg mb-2 d-block"></i>${sheetUsers.length === 0 ? 'Belum ada data user di Sheet.' : 'Tidak ada hasil pencarian.'}</td></tr>`;
             return;
         }
-
         const hakColors = {
             'Super':        'bg-danger bg-opacity-10 text-danger',
             'Admin':        'bg-primary bg-opacity-10 text-primary',
             'Admin Cabang': 'bg-info bg-opacity-10 text-info',
             'Teknisi':      'bg-success bg-opacity-10 text-success'
         };
-
         body.innerHTML = filtered.map(u => {
-            const badgeClass = hakColors[u.hak] || 'bg-secondary bg-opacity-10 text-secondary';
+            const badgeClass  = hakColors[u.hak] || 'bg-secondary bg-opacity-10 text-secondary';
             const statusBadge = u.status === 'Aktif'
                 ? '<span class="badge bg-success bg-opacity-10 text-success fw-bold">● Aktif</span>'
                 : '<span class="badge bg-danger  bg-opacity-10 text-danger  fw-bold">● Nonaktif</span>';
-            const isSuper  = u.hak === 'Super';
-            const editDisable  = '';
-            const delDisable   = isSuper ? 'disabled title="Akun Super tidak bisa dihapus"' : '';
-
+            const delDisable = u.hak === 'Super' ? 'disabled title="Akun Super tidak bisa dihapus"' : '';
             return `
             <tr>
                 <td class="text-muted small fw-bold">#${u.id}</td>
-                <td>
-                    <div class="fw-bold">${u.nama}</div>
-                    <div class="text-muted x-small">${u.password ? '••••••' : '<em>no password</em>'}</div>
-                </td>
+                <td><div class="fw-bold">${u.nama}</div><div class="text-muted x-small">${u.password ? '••••••' : '<em>no password</em>'}</div></td>
                 <td><span class="badge ${badgeClass} fw-bold px-3 py-2 rounded-pill">${u.hak}</span></td>
-                <td>
-                    <div class="d-flex align-items-center gap-2">
-                        <code id="pw-display-${u.id}" class="small">${maskPassword(u.password)}</code>
-                        <button class="btn btn-sm btn-link p-0 text-muted" onclick="togglePwDisplay(${u.id}, '${escStr(u.password)}')" title="Tampilkan/sembunyikan">
-                            <i class="fas fa-eye x-small"></i>
-                        </button>
-                    </div>
-                </td>
+                <td><div class="d-flex align-items-center gap-2"><code id="pw-display-${u.id}" class="small">${maskPassword(u.password)}</code><button class="btn btn-sm btn-link p-0 text-muted" onclick="togglePwDisplay(${u.id}, '${escStr(u.password)}')"><i class="fas fa-eye x-small"></i></button></div></td>
                 <td>${statusBadge}</td>
-                <td class="text-end">
-                    <button class="btn btn-sm btn-light me-1 rounded-pill" ${editDisable} onclick="editSheetUser(${u.id})" title="Edit">
-                        <i class="fas fa-pen text-primary"></i>
-                    </button>
-                    <button class="btn btn-sm btn-light rounded-pill" ${delDisable} onclick="deleteSheetUser(${u.id})" title="Hapus">
-                        <i class="fas fa-trash text-danger"></i>
-                    </button>
-                </td>
+                <td class="text-end"><button class="btn btn-sm btn-light me-1 rounded-pill" onclick="editSheetUser(${u.id})"><i class="fas fa-pen text-primary"></i></button><button class="btn btn-sm btn-light rounded-pill" ${delDisable} onclick="deleteSheetUser(${u.id})"><i class="fas fa-trash text-danger"></i></button></td>
             </tr>`;
         }).join('');
     }
 
     function maskPassword(pw) { return pw ? '•'.repeat(Math.min(pw.length, 8)) : '-'; }
     function escStr(s) { return (s || '').replace(/'/g, "\\'"); }
-
     function togglePwDisplay(id, pw) {
         const el = document.getElementById('pw-display-' + id);
         if (!el) return;
         el.textContent = el.textContent.includes('•') ? pw : maskPassword(pw);
     }
 
-    /** ── TAMBAH user baru → kirim ke Sheet ── */
     function showAddUserModal() {
         Swal.fire({
             title: '<i class="fas fa-user-plus text-primary me-2"></i>Tambah User Baru',
-            html: `
-                <div class="text-start px-2">
-                    <label class="form-label small fw-bold mt-2">Nama Lengkap <span class="text-danger">*</span></label>
-                    <input id="swal-nama" class="form-control mb-3" placeholder="Contoh: Budi Santoso">
-
-                    <label class="form-label small fw-bold">Password <span class="text-danger">*</span></label>
-                    <div class="input-group mb-3">
-                        <input id="swal-password" type="password" class="form-control" placeholder="Buat password">
-                        <button class="btn btn-outline-secondary" type="button" onclick="toggleSwalPw('swal-password')"><i class="fas fa-eye"></i></button>
-                    </div>
-
-                    <label class="form-label small fw-bold">Hak Akses <span class="text-danger">*</span></label>
-                    <select id="swal-hak" class="form-select mb-3">
-                        <option value="Teknisi">Teknisi</option>
-                        <option value="Admin Cabang">Admin Cabang</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Super">Super Admin</option>
-                    </select>
-
-                    <label class="form-label small fw-bold">Status</label>
-                    <select id="swal-status" class="form-select">
-                        <option value="Aktif">Aktif</option>
-                        <option value="Nonaktif">Nonaktif</option>
-                    </select>
-                </div>
-            `,
+            html: `<div class="text-start px-2">
+                <label class="form-label small fw-bold mt-2">Nama Lengkap <span class="text-danger">*</span></label>
+                <input id="swal-nama" class="form-control mb-3" placeholder="Contoh: Budi Santoso">
+                <label class="form-label small fw-bold">Password <span class="text-danger">*</span></label>
+                <div class="input-group mb-3"><input id="swal-password" type="password" class="form-control" placeholder="Buat password"><button class="btn btn-outline-secondary" type="button" onclick="toggleSwalPw('swal-password')"><i class="fas fa-eye"></i></button></div>
+                <label class="form-label small fw-bold">Hak Akses</label>
+                <select id="swal-hak" class="form-select mb-3"><option value="Teknisi">Teknisi</option><option value="Admin Cabang">Admin Cabang</option><option value="Admin">Admin</option><option value="Super">Super Admin</option></select>
+                <label class="form-label small fw-bold">Status</label>
+                <select id="swal-status" class="form-select"><option value="Aktif">Aktif</option><option value="Nonaktif">Nonaktif</option></select>
+            </div>`,
             showCancelButton: true,
             confirmButtonText: '<i class="fas fa-save me-1"></i> Simpan ke Sheet',
             cancelButtonText: 'Batal',
@@ -1387,10 +1630,7 @@
                 const pw     = document.getElementById('swal-password').value.trim();
                 const hak    = document.getElementById('swal-hak').value;
                 const status = document.getElementById('swal-status').value;
-                if (!nama || !pw) {
-                    Swal.showValidationMessage('Nama dan Password wajib diisi!');
-                    return false;
-                }
+                if (!nama || !pw) { Swal.showValidationMessage('Nama dan Password wajib diisi!'); return false; }
                 return { nama, password: pw, hak, status };
             }
         }).then(async (result) => {
@@ -1399,39 +1639,29 @@
         });
     }
 
-    /** ── EDIT user yang ada ── */
     function editSheetUser(id) {
         const u = sheetUsers.find(x => x.id === id);
         if (!u) return;
-
         Swal.fire({
             title: '<i class="fas fa-pen text-primary me-2"></i>Edit User',
-            html: `
-                <div class="text-start px-2">
-                    <label class="form-label small fw-bold mt-2">Nama Lengkap</label>
-                    <input id="swal-nama" class="form-control mb-3" value="${u.nama}">
-
-                    <label class="form-label small fw-bold">Password Baru <span class="text-muted fw-normal x-small">(kosongkan jika tidak diubah)</span></label>
-                    <div class="input-group mb-3">
-                        <input id="swal-password" type="password" class="form-control" placeholder="Biarkan kosong jika tidak ingin ubah">
-                        <button class="btn btn-outline-secondary" type="button" onclick="toggleSwalPw('swal-password')"><i class="fas fa-eye"></i></button>
-                    </div>
-
-                    <label class="form-label small fw-bold">Hak Akses</label>
-                    <select id="swal-hak" class="form-select mb-3">
-                        <option value="Teknisi"      ${u.hak==='Teknisi'      ?'selected':''}>Teknisi</option>
-                        <option value="Admin Cabang" ${u.hak==='Admin Cabang' ?'selected':''}>Admin Cabang</option>
-                        <option value="Admin"        ${u.hak==='Admin'        ?'selected':''}>Admin</option>
-                        <option value="Super"        ${u.hak==='Super'        ?'selected':''}>Super Admin</option>
-                    </select>
-
-                    <label class="form-label small fw-bold">Status</label>
-                    <select id="swal-status" class="form-select">
-                        <option value="Aktif"    ${u.status==='Aktif'   ?'selected':''}>Aktif</option>
-                        <option value="Nonaktif" ${u.status==='Nonaktif'?'selected':''}>Nonaktif</option>
-                    </select>
-                </div>
-            `,
+            html: `<div class="text-start px-2">
+                <label class="form-label small fw-bold mt-2">Nama Lengkap</label>
+                <input id="swal-nama" class="form-control mb-3" value="${u.nama}">
+                <label class="form-label small fw-bold">Password Baru <span class="text-muted fw-normal x-small">(kosongkan jika tidak diubah)</span></label>
+                <div class="input-group mb-3"><input id="swal-password" type="password" class="form-control" placeholder="Biarkan kosong jika tidak ingin ubah"><button class="btn btn-outline-secondary" type="button" onclick="toggleSwalPw('swal-password')"><i class="fas fa-eye"></i></button></div>
+                <label class="form-label small fw-bold">Hak Akses</label>
+                <select id="swal-hak" class="form-select mb-3">
+                    <option value="Teknisi" ${u.hak==='Teknisi'?'selected':''}>Teknisi</option>
+                    <option value="Admin Cabang" ${u.hak==='Admin Cabang'?'selected':''}>Admin Cabang</option>
+                    <option value="Admin" ${u.hak==='Admin'?'selected':''}>Admin</option>
+                    <option value="Super" ${u.hak==='Super'?'selected':''}>Super Admin</option>
+                </select>
+                <label class="form-label small fw-bold">Status</label>
+                <select id="swal-status" class="form-select">
+                    <option value="Aktif" ${u.status==='Aktif'?'selected':''}>Aktif</option>
+                    <option value="Nonaktif" ${u.status==='Nonaktif'?'selected':''}>Nonaktif</option>
+                </select>
+            </div>`,
             showCancelButton: true,
             confirmButtonText: '<i class="fas fa-save me-1"></i> Simpan Perubahan',
             cancelButtonText: 'Batal',
@@ -1451,48 +1681,35 @@
         });
     }
 
-    /** ── HAPUS user ── */
     function deleteSheetUser(id) {
         const u = sheetUsers.find(x => x.id === id);
         if (!u) return;
         if (u.hak === 'Super') return Swal.fire('Tidak bisa!', 'Akun Super Admin tidak dapat dihapus.', 'warning');
-
         Swal.fire({
             title: 'Hapus User?',
             html: `User <strong>${u.nama}</strong> (${u.hak}) akan dihapus permanen dari Google Sheet.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            confirmButtonText: 'Ya, Hapus',
-            cancelButtonText: 'Batal'
+            icon: 'warning', showCancelButton: true,
+            confirmButtonColor: '#dc3545', confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal'
         }).then(async (result) => {
             if (!result.isConfirmed) return;
             await sendUserToSheet('deleteUser', { id });
         });
     }
 
-    /** ── KIRIM aksi user ke Apps Script ── */
     async function sendUserToSheet(action, data) {
         Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
         try {
             const payload = { action, ...data };
             const res = await fetch(config.sheetUrl, {
-                method:  'POST',
+                method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
-                body:    JSON.stringify(payload)
+                body: JSON.stringify(payload)
             });
             const json = await res.json();
-
             if (json.success) {
-                await loadUsersFromSheet(); // reload dari sheet
-                // Sync juga ke localStorage agar login tetap bisa dilakukan
+                await loadUsersFromSheet();
                 syncSheetUsersToLocal();
-                Swal.fire({
-                    toast: true, position: 'top-end', icon: 'success',
-                    title: json.message || 'Berhasil disimpan ke Sheet',
-                    showConfirmButton: false, timer: 2500
-                });
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: json.message || 'Berhasil disimpan ke Sheet', showConfirmButton: false, timer: 2500 });
             } else {
                 throw new Error(json.message || 'Respons tidak dikenal dari server');
             }
@@ -1502,39 +1719,24 @@
         }
     }
 
-    /** ── Sync sheet users ke localStorage untuk keperluan login offline ── */
     function syncSheetUsersToLocal() {
         userStore = sheetUsers.map(u => ({
-            id:       u.id,
-            username: u.nama,
-            password: u.password,
-            role:     hakToRole(u.hak),
-            status:   u.status
+            id: u.id, username: u.nama, password: u.password, role: hakToRole(u.hak), status: u.status
         }));
         localStorage.setItem('sparepart_users', JSON.stringify(userStore));
     }
 
-    /** ── Helper: toggle visibility password di Swal ── */
     function toggleSwalPw(id) {
         const el = document.getElementById(id);
         if (el) el.type = el.type === 'password' ? 'text' : 'password';
     }
 
-    /** ── Login: cek user dari sheetUsers (jika sudah load) atau localStorage ── */
     function validateLogin(role, pass) {
-        // Prioritaskan data dari sheet jika sudah tersedia
-        const source = sheetUsers.length > 0 ? sheetUsers : userStore;
-
         if (sheetUsers.length > 0) {
-            // Validasi dari sheet: cocokkan nama + password + hak + status Aktif
             return sheetUsers.find(u => {
-                const matchRole = hakToRole(u.hak) === role;
-                const matchPw   = u.password === pass;
-                const isAktif   = u.status === 'Aktif';
-                return matchRole && matchPw && isAktif;
+                return hakToRole(u.hak) === role && u.password === pass && u.status === 'Aktif';
             });
         } else {
-            // Fallback localStorage
             return userStore.find(u => u.role === role && u.password === pass);
         }
     }
@@ -1573,6 +1775,7 @@
                             const address = data.display_name || "Alamat tidak ditemukan";
                             addrDisplay.innerText = address;
                             document.getElementById('input-alamat').value = address;
+                            scheduleDraftSave(); // simpan koordinat & alamat ke draft
                         })
                         .catch(() => { addrDisplay.innerText = "Gagal mengambil alamat"; });
 
@@ -1607,7 +1810,6 @@
     // =========================================================
     function renderTables() {
         if (currentRole === 'teknisi') return;
-
         const dirBody   = document.getElementById('table-direktur-body');
         const adminBody = document.getElementById('table-admin-body');
         if (!dirBody && !adminBody) return;
@@ -1626,19 +1828,11 @@
                 item.teknisi.toLowerCase().includes(searchTerm) ||
                 item.kendala.toLowerCase().includes(searchTerm) ||
                 item.alamat.toLowerCase().includes(searchTerm);
-
             let dateMatch = true;
             if (startDate || endDate) {
-                const itemDate = new Date(item.tgl);
-                itemDate.setHours(0,0,0,0);
-                if (startDate) {
-                    const start = new Date(startDate); start.setHours(0,0,0,0);
-                    if (itemDate < start) dateMatch = false;
-                }
-                if (endDate) {
-                    const end = new Date(endDate); end.setHours(23,59,59,999);
-                    if (itemDate > end) dateMatch = false;
-                }
+                const itemDate = new Date(item.tgl); itemDate.setHours(0,0,0,0);
+                if (startDate) { const start = new Date(startDate); start.setHours(0,0,0,0); if (itemDate < start) dateMatch = false; }
+                if (endDate)   { const end   = new Date(endDate);   end.setHours(23,59,59,999); if (itemDate > end) dateMatch = false; }
             }
             return searchMatch && dateMatch;
         });
@@ -1659,10 +1853,8 @@
         filteredData.forEach(item => {
             const badgeClass   = `bg-${item.status.toLowerCase().replace(' ', '-')}`;
             const tglFormatted = new Date(item.tgl).toLocaleString('id-ID', {
-                day: '2-digit', month: '2-digit', year: 'numeric',
-                hour: '2-digit', minute: '2-digit'
+                day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
             });
-
             const locationBtn = `<button class="btn btn-link btn-sm p-0 text-decoration-none" onclick="viewMap('${item.koordinat}', '${item.alamat}')"><i class="fas fa-map-location-dot me-1"></i> Lihat</button>`;
             const photoAction = `<button class="btn btn-primary btn-sm px-3 rounded-pill" onclick="viewDocumentation(${item.id})"><i class="fas fa-images me-1"></i> Lihat Foto</button>`;
 
@@ -1676,12 +1868,10 @@
                         <td>${photoAction}</td>
                         <td>${locationBtn}</td>
                         <td><span class="status-badge ${badgeClass}">${item.status}</span></td>
-                    </tr>
-                `;
+                    </tr>`;
             }
 
             if (currentRole === 'admin' && adminBody) {
-                // Dropdown status dengan id unik agar bisa di-disable saat loading
                 adminBody.innerHTML += `
                     <tr>
                         <td class="fw-bold">${item.sj}</td>
@@ -1690,8 +1880,7 @@
                         <td>${photoAction}</td>
                         <td>${locationBtn}</td>
                         <td>
-                            <select id="status-select-${item.id}"
-                                    onchange="updateStatus(${item.id}, this.value)"
+                            <select id="status-select-${item.id}" onchange="updateStatus(${item.id}, this.value)"
                                     class="form-select form-select-sm w-auto fw-bold ${badgeClass}">
                                 <option value="Proses"      ${item.status === 'Proses'      ? 'selected' : ''}>Proses</option>
                                 <option value="Valid"       ${item.status === 'Valid'       ? 'selected' : ''}>Valid</option>
@@ -1703,21 +1892,20 @@
                                 <i class="fas fa-trash text-danger"></i>
                             </button>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             }
         });
     }
 
     function resetFilters(role) {
-        document.getElementById(`search-${role}`).value        = '';
-        document.getElementById(`filter-start-${role}`).value  = '';
-        document.getElementById(`filter-end-${role}`).value    = '';
+        document.getElementById(`search-${role}`).value       = '';
+        document.getElementById(`filter-start-${role}`).value = '';
+        document.getElementById(`filter-end-${role}`).value   = '';
         renderTables();
     }
 
     // =========================================================
-    // HELPER: GOOGLE DRIVE DIRECT LINK
+    // GOOGLE DRIVE DIRECT LINK HELPER
     // =========================================================
     function getDirectLink(url, size = 1000) {
         if (!url) return '';
@@ -1735,38 +1923,28 @@
         const item = dataStore.find(d => d.id === id);
         if (!item) return;
         document.getElementById('doc-sj-title').innerText = `Nomor SJ: ${item.sj} | Teknisi: ${item.teknisi}`;
-        
         const container = document.getElementById('doc-container');
         container.innerHTML = '';
-
         const categories = [
-            { id: 'foto_sj',      label: 'Surat Jalan',                  icon: 'fa-file-invoice', data: item.foto_sj      },
-            { id: 'foto_unit',    label: 'Unit / No. Seri',              icon: 'fa-microchip',    data: item.foto_unit    },
-            { id: 'foto_sebelum', label: 'Sparepart Sebelum Instalasi',  icon: 'fa-history',      data: item.foto_sebelum },
-            { id: 'foto_sesudah', label: 'Sparepart Sesudah Instalasi',  icon: 'fa-check-circle', data: item.foto_sesudah }
+            { id: 'foto_sj',      label: 'Surat Jalan',                 icon: 'fa-file-invoice', data: item.foto_sj      },
+            { id: 'foto_unit',    label: 'Unit / No. Seri',             icon: 'fa-microchip',    data: item.foto_unit    },
+            { id: 'foto_sebelum', label: 'Sparepart Sebelum Instalasi', icon: 'fa-history',      data: item.foto_sebelum },
+            { id: 'foto_sesudah', label: 'Sparepart Sesudah Instalasi', icon: 'fa-check-circle', data: item.foto_sesudah }
         ];
-
         categories.forEach(cat => {
             const urls = cat.data ? cat.data.split('\n').filter(u => u.trim()) : [];
             const col  = document.createElement('div');
             col.className = 'col-md-6';
-            
             let photoGrid = '';
             if (urls.length > 0) {
                 urls.forEach(url => {
                     const thumbUrl = getDirectLink(url, 400);
                     const fullUrl  = getDirectLink(url, 1600);
-                    photoGrid += `
-                        <div class="doc-photo-item" onclick="openZoom('${fullUrl}', '${url}')">
-                            <img src="${thumbUrl}" class="doc-photo-img" loading="lazy" referrerPolicy="no-referrer"
-                                 onerror="this.src='https://placehold.co/400x400?text=Format+Error'">
-                        </div>
-                    `;
+                    photoGrid += `<div class="doc-photo-item" onclick="openZoom('${fullUrl}', '${url}')"><img src="${thumbUrl}" class="doc-photo-img" loading="lazy" referrerPolicy="no-referrer" onerror="this.src='https://placehold.co/400x400?text=Format+Error'"></div>`;
                 });
             } else {
                 photoGrid = '<div class="text-muted x-small p-3 text-center border rounded-3 bg-white">Tidak ada foto dokumentasi</div>';
             }
-
             col.innerHTML = `
                 <div class="doc-category-card">
                     <div class="d-flex align-items-center mb-2">
@@ -1775,11 +1953,9 @@
                         <span class="ms-auto badge bg-primary bg-opacity-10 text-primary">${urls.length} Foto</span>
                     </div>
                     <div class="doc-photo-grid">${photoGrid}</div>
-                </div>
-            `;
+                </div>`;
             container.appendChild(col);
         });
-
         new bootstrap.Modal(document.getElementById('docModal')).show();
     }
 
@@ -1788,100 +1964,53 @@
         const mapUrl = `https://www.google.com/maps?q=${lat},${lng}&z=16&output=embed`;
         Swal.fire({
             title: 'Lokasi Terkini',
-            html: `
-                <div class="text-start mb-3">
-                    <div class="fw-bold small mb-1">Alamat:</div>
-                    <div class="text-muted x-small">${address}</div>
-                </div>
-                <div class="map-container" style="height: 300px">
-                    <iframe class="map-iframe" src="${mapUrl}"></iframe>
-                </div>
-            `,
+            html: `<div class="text-start mb-3"><div class="fw-bold small mb-1">Alamat:</div><div class="text-muted x-small">${address}</div></div>
+                   <div class="map-container" style="height: 300px"><iframe class="map-iframe" src="${mapUrl}"></iframe></div>`,
             width: 600,
             confirmButtonText: 'Tutup'
         });
     }
 
     // =========================================================
-    // ✅ UPDATE STATUS — TERSINKRON KE GOOGLE SHEETS
+    // UPDATE STATUS
     // =========================================================
     async function updateStatus(id, newStatus) {
         const item = dataStore.find(d => d.id === id);
         if (!item) return;
-
-        // Disable dropdown agar tidak double-click
         const selectEl = document.getElementById(`status-select-${id}`);
         if (selectEl) selectEl.classList.add('status-saving');
-
         try {
-            const payload = {
-                action: 'updateStatus',
-                sj:     item.sj,
-                status: newStatus
-            };
-
-            // Kirim ke Apps Script — gunakan fetch biasa (bukan no-cors)
-            // agar Apps Script bisa memproses dan mengembalikan respons
-            const response = await fetch(config.sheetUrl, {
-                method:  'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body:    JSON.stringify(payload)
-            });
-
-            // Update data lokal
+            const payload = { action: 'updateStatus', sj: item.sj, status: newStatus };
+            await fetch(config.sheetUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
             item.status = newStatus;
             renderTables();
-
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: `Status diubah ke "${newStatus}"`,
-                showConfirmButton: false,
-                timer: 2000
-            });
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: `Status diubah ke "${newStatus}"`, showConfirmButton: false, timer: 2000 });
         } catch (error) {
             console.error("Update Status Error:", error);
-            // Kembalikan ke status lama di UI jika gagal
             renderTables();
-            Swal.fire('Gagal!', 'Tidak dapat menyimpan perubahan status ke server. Periksa koneksi internet.', 'error');
+            Swal.fire('Gagal!', 'Tidak dapat menyimpan perubahan status ke server.', 'error');
         } finally {
             if (selectEl) selectEl.classList.remove('status-saving');
         }
     }
 
     // =========================================================
-    // ✅ DELETE DATA — TERSINKRON KE GOOGLE SHEETS
+    // DELETE DATA
     // =========================================================
     async function deleteData(id) {
         const item = dataStore.find(d => d.id === id);
         if (!item) return;
-
         const result = await Swal.fire({
             title: 'Hapus Data?',
             text: `Data dengan No. SJ "${item.sj}" akan dihapus permanen dari website dan Google Sheet.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            confirmButtonText: 'Ya, Hapus Permanen'
+            icon: 'warning', showCancelButton: true,
+            confirmButtonColor: '#dc3545', confirmButtonText: 'Ya, Hapus Permanen'
         });
-
         if (!result.isConfirmed) return;
-
         Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
         try {
-            const payload = {
-                action: 'deleteData',
-                sj:     item.sj
-            };
-
-            await fetch(config.sheetUrl, {
-                method:  'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body:    JSON.stringify(payload)
-            });
-
+            const payload = { action: 'deleteData', sj: item.sj };
+            await fetch(config.sheetUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
             dataStore = dataStore.filter(d => d.id !== id);
             renderTables();
             Swal.fire('Terhapus!', 'Data berhasil dihapus dari server dan Google Sheet.', 'success');
@@ -1893,22 +2022,21 @@
 
     async function refreshData() {
         Swal.fire({ title: 'Menyinkronkan...', didOpen: () => { Swal.showLoading(); } });
-        // Reset hash agar tick berikutnya pasti re-render
         lastDataHash = '';
         await autoSyncTick();
         Swal.close();
-        Swal.fire({
-            toast: true, position: 'top-end', icon: 'success',
-            title: 'Data berhasil disinkronkan', showConfirmButton: false, timer: 1500
-        });
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Data berhasil disinkronkan', showConfirmButton: false, timer: 1500 });
     }
 
     // =========================================================
     // FORM SUBMIT (TEKNISI)
     // =========================================================
+    let accumulatedImages = {
+        foto_sj: [], foto_unit: [], foto_sebelum: [], foto_sesudah: []
+    };
+
     document.getElementById('form-teknisi').addEventListener('submit', async function(e) {
         e.preventDefault();
-        
         const confirm = await Swal.fire({
             title: 'Kirim Laporan?',
             text: "Data akan dikirim ke Google Sheet",
@@ -1920,32 +2048,32 @@
 
         try {
             const payload = {
-                no_sj:      document.getElementById('no_sj').value.trim(),
-                teknisi:    document.getElementById('nama_teknisi').value.trim(),
-                kendala:    document.getElementById('kendala_unit').value.trim(),
-                alamat:     document.getElementById('input-alamat').value,
-                koordinat:  document.getElementById('input-koordinat').value,
-                img_sj:     accumulatedImages.foto_sj,
-                img_sebelum:accumulatedImages.foto_sebelum,
-                img_sesudah:accumulatedImages.foto_sesudah,
-                img_unit:   accumulatedImages.foto_unit
+                no_sj:       document.getElementById('no_sj').value.trim(),
+                teknisi:     document.getElementById('nama_teknisi').value.trim(),
+                kendala:     document.getElementById('kendala_unit').value.trim(),
+                alamat:      document.getElementById('input-alamat').value,
+                koordinat:   document.getElementById('input-koordinat').value,
+                img_sj:      accumulatedImages.foto_sj,
+                img_sebelum: accumulatedImages.foto_sebelum,
+                img_sesudah: accumulatedImages.foto_sesudah,
+                img_unit:    accumulatedImages.foto_unit
             };
 
             if (config.sheetUrl) {
                 await fetch(config.sheetUrl, {
-                    method:  'POST',
-                    mode:    'no-cors',
+                    method: 'POST', mode: 'no-cors',
                     headers: { 'Content-Type': 'text/plain' },
-                    body:    JSON.stringify(payload)
+                    body: JSON.stringify(payload)
                 });
+                // Hapus draft setelah berhasil kirim
+                localStorage.removeItem(DRAFT_KEY);
+                localStorage.removeItem(DRAFT_IMAGES_KEY);
+                hideDraftBanner();
                 Swal.fire('Berhasil!', 'Laporan telah terkirim ke Google Sheet.', 'success');
             } else {
                 const now = new Date();
                 const tglStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-                dataStore.unshift({
-                    id: Date.now(), tgl: tglStr, sj: payload.no_sj, teknisi: payload.teknisi,
-                    kendala: payload.kendala, status: 'Proses', alamat: payload.alamat, koordinat: payload.koordinat
-                });
+                dataStore.unshift({ id: Date.now(), tgl: tglStr, sj: payload.no_sj, teknisi: payload.teknisi, kendala: payload.kendala, status: 'Proses', alamat: payload.alamat, koordinat: payload.koordinat });
                 Swal.fire('Tersimpan Lokal!', 'URL API belum diatur, data disimpan sementara di browser.', 'warning');
             }
 
@@ -1955,6 +2083,7 @@
             renderTables();
             accumulatedImages = { foto_sj: [], foto_unit: [], foto_sebelum: [], foto_sesudah: [] };
             document.querySelectorAll('.preview-grid').forEach(el => el.innerHTML = '');
+            setAutosaveState('');
 
         } catch (error) {
             console.error("Submission error:", error);
@@ -1978,6 +2107,7 @@
                         accumulatedImages[cat].push(b64);
                     }
                     renderPreview(cat);
+                    scheduleDraftSave(); // simpan foto ke draft
                     this.value = '';
                 }
             });
@@ -1986,6 +2116,7 @@
 
     function renderPreview(cat) {
         const container = document.getElementById('preview-' + cat);
+        if (!container) return;
         container.innerHTML = '';
         accumulatedImages[cat].forEach((src, index) => {
             const item = document.createElement('div');
@@ -2001,6 +2132,7 @@
     function removeImage(cat, index) {
         accumulatedImages[cat].splice(index, 1);
         renderPreview(cat);
+        scheduleDraftSave();
     }
 
     // =========================================================
@@ -2036,20 +2168,16 @@
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeZoom(); });
 
     // =========================================================
-    // 🔄 AUTO-SYNC SYSTEM (Polling setiap 30 detik)
+    // AUTO-SYNC SYSTEM
     // =========================================================
-    const SYNC_INTERVAL_MS = 30000; // 30 detik
-    let autoSyncTimer      = null;
-    let lastDataHash       = '';
-    let toastTimer         = null;
-    let isSyncRunning      = false;
+    const SYNC_INTERVAL_MS = 30000;
+    let autoSyncTimer  = null;
+    let lastDataHash   = '';
+    let toastTimer     = null;
+    let isSyncRunning  = false;
 
-    /** Buat hash sederhana dari dataStore untuk deteksi perubahan */
-    function hashData(store) {
-        return store.map(d => `${d.sj}|${d.status}`).join(',');
-    }
+    function hashData(store) { return store.map(d => `${d.sj}|${d.status}`).join(','); }
 
-    /** Tampilkan state di indikator navbar */
     function setSyncState(state, label) {
         const el = document.getElementById('sync-indicator');
         const lb = document.getElementById('sync-label');
@@ -2059,7 +2187,6 @@
         if (lb) lb.textContent = label;
     }
 
-    /** Tampilkan toast "data baru masuk" */
     function showNewDataToast(msg = 'Data baru masuk — tabel diperbarui') {
         const toast = document.getElementById('new-data-toast');
         const msgEl = document.getElementById('toast-msg');
@@ -2076,19 +2203,15 @@
         clearTimeout(toastTimer);
     }
 
-    /** Satu siklus polling — ambil data, bandingkan, update jika ada perubahan */
     async function autoSyncTick() {
         if (!config.sheetUrl || !currentRole || currentRole === 'teknisi' || currentRole === 'settings') return;
-        if (isSyncRunning) return; // cegah overlap
+        if (isSyncRunning) return;
         isSyncRunning = true;
-
         setSyncState('syncing', 'Syncing...');
-
         try {
-            const response = await fetch(config.sheetUrl + '?t=' + Date.now()); // cache-bust
+            const response = await fetch(config.sheetUrl + '?t=' + Date.now());
             if (!response.ok) throw new Error('Network error');
             const raw = await response.json();
-
             const newStore = raw.map((row, index) => ({
                 id:           index + 1,
                 tgl:          row['Timestamp']        || '',
@@ -2103,35 +2226,26 @@
                 koordinat:    row['Koordinat']        || '',
                 status:       row['Status']           || 'Proses'
             })).reverse();
-
             const newHash = hashData(newStore);
-
             if (newHash !== lastDataHash) {
                 const isFirst  = lastDataHash === '';
                 const oldCount = dataStore.length;
                 const newCount = newStore.length;
-
                 dataStore    = newStore;
                 lastDataHash = newHash;
                 renderTables();
-
                 if (!isFirst) {
-                    // Ada perubahan nyata setelah initial load
                     if (newCount > oldCount) {
                         showNewDataToast(`${newCount - oldCount} laporan baru masuk — tabel diperbarui`);
                     } else {
                         showNewDataToast('Data telah diperbarui secara otomatis');
                     }
                 } else {
-                    // Inisialisasi hash pertama kali
                     lastDataHash = newHash;
                 }
             }
-
             setSyncState('synced', 'Live ✓');
-            // Kembalikan ke idle setelah 3 detik
             setTimeout(() => setSyncState('', 'Live'), 3000);
-
         } catch (err) {
             console.warn('Auto-sync gagal:', err);
             setSyncState('error', 'Offline');
@@ -2140,17 +2254,15 @@
         }
     }
 
-    /** Mulai auto-sync — dipanggil saat masuk ke section admin/direktur */
     function startAutoSync() {
-        stopAutoSync(); // clear timer lama dulu
+        stopAutoSync();
         const indicator = document.getElementById('sync-indicator');
         if (indicator) indicator.classList.remove('d-none');
-        lastDataHash = ''; // reset agar tick pertama selalu render
-        autoSyncTick(); // langsung jalankan sekali
+        lastDataHash = '';
+        autoSyncTick();
         autoSyncTimer = setInterval(autoSyncTick, SYNC_INTERVAL_MS);
     }
 
-    /** Hentikan auto-sync — dipanggil saat logout atau pindah ke section lain */
     function stopAutoSync() {
         clearInterval(autoSyncTimer);
         autoSyncTimer = null;
@@ -2159,12 +2271,11 @@
     }
 
     // =========================================================
-    // Init
+    // INIT
     // =========================================================
     setupImageHandlers();
 
-    // Pre-load users dari Sheet saat halaman pertama dibuka
-    // agar proses login sudah menggunakan data terbaru dari Sheet
+    // Pre-load users dari Sheet
     (async function preloadUsers() {
         if (!config.sheetUrl) return;
         try {
