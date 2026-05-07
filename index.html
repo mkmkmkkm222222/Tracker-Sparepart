@@ -465,7 +465,6 @@
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
 <div id="login-screen">
     <div class="login-card">
         <div class="mb-4">
@@ -477,7 +476,6 @@
         </div>
 
         <div id="login-form-container">
-            <!-- Teknisi Login (Default) -->
             <div id="teknisi-login-view">
                 <div class="mb-3 text-start">
                     <div class="d-flex align-items-center mb-2">
@@ -501,7 +499,6 @@
                 </div>
             </div>
 
-            <!-- Management Login (Hidden) -->
             <div id="management-login-view" style="display: none;">
                 <div class="mb-3 text-start">
                     <div class="d-flex align-items-center mb-3">
@@ -545,7 +542,6 @@
     </div>
 </div>
 
-<!-- MAIN APP CONTENT -->
 <div id="app-content">
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
@@ -566,7 +562,6 @@
         </div>
     </nav>
 
-    <!-- DRAFT BANNER — muncul saat ada draft tersimpan -->
     <div id="draft-banner">
         <span class="draft-pulse"></span>
         <span><i class="fas fa-floppy-disk me-1"></i> Draft laporan ditemukan dari sesi sebelumnya.</span>
@@ -578,7 +573,6 @@
         </button>
     </div>
 
-    <!-- TOAST: notifikasi data baru masuk -->
     <div id="new-data-toast" class="new-data-toast" onclick="dismissNewDataToast()">
         <i class="fas fa-bell"></i>
         <span id="toast-msg">Data baru masuk — tabel diperbarui</span>
@@ -587,7 +581,6 @@
 
     <div class="container py-4">
         
-        <!-- SECTION: DIREKTUR -->
         <section id="section-direktur" class="role-section">
             <div class="row mb-4">
                 <div class="col-12 d-flex justify-content-between align-items-end">
@@ -694,7 +687,6 @@
             </div>
         </section>
 
-        <!-- SECTION: ADMIN -->
         <section id="section-admin" class="role-section">
             <div class="row mb-4">
                 <div class="col-12 d-flex justify-content-between align-items-end">
@@ -759,7 +751,6 @@
             </div>
         </section>
 
-        <!-- SECTION: TEKNISI -->
         <section id="section-teknisi" class="role-section">
             <div class="row justify-content-center">
                 <div class="col-lg-6">
@@ -767,13 +758,11 @@
                         <div class="card-header text-center py-4">
                             <h5 class="fw-bold mb-0">Form Laporan Lapangan</h5>
                         </div>
-                        <!-- AUTOSAVE INDICATOR -->
                         <div class="autosave-indicator" id="autosave-indicator">
                             <span class="save-dot"></span>
                             <span id="autosave-label">Siap</span>
                         </div>
                         <div class="card-body p-4">
-                            <!-- INFO KUALITAS FOTO -->
                             <div class="alert alert-success border-0 rounded-3 py-2 px-3 mb-3 d-flex align-items-center gap-2" style="background: #ebfbee;">
                                 <i class="fas fa-image text-success"></i>
                                 <span class="small fw-bold text-success">Foto dikirim dalam kualitas penuh (tanpa kompresi)</span>
@@ -805,8 +794,8 @@
                                         <div id="preview-foto_sj" class="preview-grid"></div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label small fw-bold">Foto Unit &amp; Plat Seri</label>
-                                        <div class="x-small text-muted mb-1">&nbsp;</div>
+                                        <label class="form-label small fw-bold">Foto Unit & Plat Seri</label>
+                                        <div class="x-small text-muted mb-1"> </div>
                                         <input type="file" id="foto_unit_input" class="d-none" accept="image/*" capture="environment" multiple>
                                         <button type="button" class="btn btn-light w-100 border py-2 mb-2" onclick="triggerInput('foto_unit_input')">
                                             <i class="fas fa-camera me-2"></i> Ambil Foto Unit
@@ -832,7 +821,7 @@
 
                                     <div class="col-12">
                                         <div class="bg-light p-3 rounded-4 border">
-                                            <label class="form-label text-muted x-small text-uppercase fw-bold mb-1">Lokasi Otomatis (GPS &amp; Alamat)</label>
+                                            <label class="form-label text-muted x-small text-uppercase fw-bold mb-1">Lokasi Otomatis (GPS & Alamat)</label>
                                             <div class="d-flex align-items-start mb-2">
                                                 <i class="fas fa-location-dot text-danger mt-1 me-2"></i>
                                                 <div class="flex-grow-1">
@@ -873,7 +862,6 @@
             </div>
         </section>
 
-        <!-- SECTION: SETTINGS -->
         <section id="section-settings" class="role-section">
             <div class="row justify-content-center">
                 <div class="col-lg-10">
@@ -1006,9 +994,8 @@
     </div>
 </div>
 
-<!-- ZOOM MODAL -->
 <div id="zoom-modal" style="display: none;">
-    <span class="close-zoom" onclick="closeZoom()">&times;</span>
+    <span class="close-zoom" onclick="closeZoom()">×</span>
     <img id="zoom-content" src="" alt="Zoomed view">
     <div class="zoom-controls">
         <button class="zoom-btn" onclick="zoomIn()"><i class="fas fa-search-plus"></i></button>
@@ -1018,7 +1005,6 @@
     </div>
 </div>
 
-<!-- DOCUMENTATION MODAL -->
 <div class="modal fade" id="docModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -1046,6 +1032,39 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    /**
+     * FUNGSI KHUSUS PERIZINAN ANDROID/IOS
+     * Menambahkan pengecekan izin Kamera dan Lokasi saat aplikasi dimulai.
+     */
+    async function requestAppPermissions() {
+        // Cek apakah berjalan di dalam Capacitor (Apps)
+        if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+            const { Camera } = Capacitor.Plugins;
+            const { Geolocation } = Capacitor.Plugins;
+
+            try {
+                // Request Izin Kamera
+                if (Camera) {
+                    const cameraStatus = await Camera.requestPermissions();
+                    console.log('Status Izin Kamera:', cameraStatus.camera);
+                }
+
+                // Request Izin Lokasi
+                if (Geolocation) {
+                    const geoStatus = await Geolocation.requestPermissions();
+                    console.log('Status Izin Lokasi:', geoStatus.location);
+                }
+            } catch (e) {
+                console.warn("Gagal meminta izin native:", e);
+            }
+        }
+    }
+
+    // Jalankan permintaan izin saat halaman dimuat
+    window.addEventListener('DOMContentLoaded', requestAppPermissions);
+</script>
 
 <script>
 
@@ -1347,18 +1366,18 @@
             const data = await response.json();
             
             dataStore = data.map((row, index) => ({
-                id:         index + 1,
-                tgl:        row['Timestamp']    || '',
-                sj:         row['No Formulir']  || '',
-                teknisi:    row['Teknisi']       || '',
-                kendala:    row['Kendala']       || '',
-                foto_sj:    row['Foto Surat Jalan'] || '',
+                id:           index + 1,
+                tgl:          row['Timestamp']    || '',
+                sj:           row['No Formulir']  || '',
+                teknisi:      row['Teknisi']        || '',
+                kendala:      row['Kendala']        || '',
+                foto_sj:      row['Foto Surat Jalan'] || '',
                 foto_sebelum: row['Foto Sebelum']   || '',
                 foto_sesudah: row['Foto Sesudah']   || '',
                 foto_unit:  row['Foto Unit']     || '',
-                alamat:     row['Alamat']        || '',
+                alamat:      row['Alamat']         || '',
                 koordinat:  row['Koordinat']     || '',
-                status:     row['Status']        || 'Proses'
+                status:      row['Status']         || 'Proses'
             })).reverse();
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -1927,8 +1946,8 @@
         const container = document.getElementById('doc-container');
         container.innerHTML = '';
         const categories = [
-            { id: 'foto_sj',      label: 'Surat Jalan',                 icon: 'fa-file-invoice', data: item.foto_sj      },
-            { id: 'foto_unit',    label: 'Unit / No. Seri',             icon: 'fa-microchip',    data: item.foto_unit    },
+            { id: 'foto_sj',      label: 'Surat Jalan',                   icon: 'fa-file-invoice', data: item.foto_sj      },
+            { id: 'foto_unit',    label: 'Unit / No. Seri',               icon: 'fa-microchip',    data: item.foto_unit    },
             { id: 'foto_sebelum', label: 'Sparepart Sebelum Instalasi', icon: 'fa-history',      data: item.foto_sebelum },
             { id: 'foto_sesudah', label: 'Sparepart Sesudah Instalasi', icon: 'fa-check-circle', data: item.foto_sesudah }
         ];
@@ -2124,7 +2143,7 @@
             item.className = 'preview-item';
             item.innerHTML = `
                 <img src="${src}" class="preview-img" onclick="openZoom('${src}')">
-                <span class="remove-img" onclick="removeImage('${cat}', ${index})">&times;</span>
+                <span class="remove-img" onclick="removeImage('${cat}', ${index})">×</span>
             `;
             container.appendChild(item);
         });
@@ -2214,18 +2233,18 @@
             if (!response.ok) throw new Error('Network error');
             const raw = await response.json();
             const newStore = raw.map((row, index) => ({
-                id:           index + 1,
-                tgl:          row['Timestamp']        || '',
-                sj:           row['No Formulir']      || '',
-                teknisi:      row['Teknisi']          || '',
-                kendala:      row['Kendala']          || '',
-                foto_sj:      row['Foto Surat Jalan'] || '',
+                id:               index + 1,
+                tgl:              row['Timestamp']        || '',
+                sj:               row['No Formulir']      || '',
+                teknisi:          row['Teknisi']          || '',
+                kendala:          row['Kendala']          || '',
+                foto_sj:          row['Foto Surat Jalan'] || '',
                 foto_sebelum: row['Foto Sebelum']     || '',
                 foto_sesudah: row['Foto Sesudah']     || '',
                 foto_unit:    row['Foto Unit']        || '',
-                alamat:       row['Alamat']           || '',
+                alamat:        row['Alamat']           || '',
                 koordinat:    row['Koordinat']        || '',
-                status:       row['Status']           || 'Proses'
+                status:        row['Status']           || 'Proses'
             })).reverse();
             const newHash = hashData(newStore);
             if (newHash !== lastDataHash) {
