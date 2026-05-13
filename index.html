@@ -888,10 +888,11 @@ window.addEventListener('DOMContentLoaded', requestAppPermissions);
     if (!cabang) return '';
     const trimmed = cabang.trim();
     if (trimmed !== 'Workshop Jatiasih' && trimmed !== 'Semua' && trimmed.startsWith('Teknisi ')) {
-        return trimmed.substring(8); // "Teknisi Medan" → "Medan"
+        return trimmed.substring(8);
     }
     return trimmed;
 }
+
 // =========================================================
 // ONESIGNAL CONFIG
 // =========================================================
@@ -1222,9 +1223,10 @@ function loginAs(role, user) {
     if (role === 'teknisi') {
         setTimeout(() => { if (hasDraft()) showDraftBanner(); }, 600);
         // Tampilkan info cabang teknisi
-        const cabangName = user ? (user.cabang || 'Umum') : 'Umum';
-        const el = document.getElementById('teknisi-cabang-name');
-        if (el) el.textContent = cabangName;
+let cabangName = normalizeCabang(user ? (user.cabang || 'Semua') : 'Semua');
+if (!cabangName || cabangName === 'Semua') cabangName = 'Workshop Jatiasih';
+const el = document.getElementById('teknisi-cabang-name');
+if (el) el.textContent = cabangName;
     }
 }
 
@@ -1743,7 +1745,8 @@ document.getElementById('form-teknisi').addEventListener('submit', async functio
     if (!confirm.isConfirmed) return;
     Swal.fire({ title: 'Mengirim Data...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
     try {
-        const cabang = normalizeCabang(currentUser ? (currentUser.cabang || 'Workshop Jatiasih') : 'Workshop Jatiasih');
+        let cabang = normalizeCabang(currentUser ? (currentUser.cabang || 'Semua') : 'Semua');
+if (!cabang || cabang === 'Semua') cabang = 'Workshop Jatiasih';
         const payload = {
             no_sj:     document.getElementById('no_sj').value.trim(),
             teknisi:   document.getElementById('nama_teknisi').value.trim(),
@@ -1862,7 +1865,9 @@ async function autoSyncTick() {
         // admin_cabang: ambil cabang dari currentUser langsung
         let fetchCabang = 'Semua';
         if (currentRole === 'admin_cabang') {
-            fetchCabang = currentUser ? (currentUser.cabang || 'Semua') : 'Semua';
+            let raw = currentUser ? (currentUser.cabang || 'Semua') : 'Semua';
+fetchCabang = normalizeCabang(raw);
+if (!fetchCabang || fetchCabang === 'Semua') fetchCabang = 'Workshop Jatiasih';
         } else if (currentRole === 'direktur' || currentRole === 'admin') {
             fetchCabang = activeCabangFilter[currentRole] || 'Semua';
         }
